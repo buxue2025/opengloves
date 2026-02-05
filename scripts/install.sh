@@ -136,6 +136,52 @@ with open('$INSTALL_DIR/config.json', 'w') as f:
     json.dump(config, f, indent=2)
 EOF
                 success "Auto-configured gateway settings"
+                
+                # Update OpenClaw allowedOrigins to allow OpenGloves access
+                info "Updating OpenClaw allowedOrigins..."
+                python3 << EOF
+import json
+import os
+
+openclaw_config = os.path.expanduser('~/.openclaw/openclaw.json')
+
+try:
+    with open(openclaw_config, 'r') as f:
+        config = json.load(f)
+    
+    # Get current allowedOrigins
+    origins = config.get('gateway', {}).get('controlUi', {}).get('allowedOrigins', [])
+    
+    # Add required origins
+    required_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+    added = []
+    for origin in required_origins:
+        if origin not in origins:
+            origins.append(origin)
+            added.append(origin)
+    
+    # Update config
+    if 'gateway' not in config:
+        config['gateway'] = {}
+    if 'controlUi' not in config['gateway']:
+        config['gateway']['controlUi'] = {}
+    config['gateway']['controlUi']['allowedOrigins'] = origins
+    
+    # Save back
+    with open(openclaw_config, 'w') as f:
+        json.dump(config, f, indent=2)
+    
+    if added:
+        print(f"✅ Added {len(added)} origins to allowedOrigins")
+        print("⚠️  Please restart OpenClaw Gateway for changes to take effect:")
+        print("   systemctl --user restart openclaw-gateway")
+        print("   or: openclaw gateway restart")
+    else:
+        print("✅ allowedOrigins already configured")
+except Exception as e:
+    print(f"⚠️  Could not update allowedOrigins: {e}")
+    print("   Please manually add 'http://localhost:8080' to ~/.openclaw/openclaw.json")
+EOF
             fi
         else
             warning "Could not extract gateway token automatically"

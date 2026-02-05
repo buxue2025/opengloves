@@ -38,6 +38,52 @@ with open('config.json', 'w') as f:
     json.dump(config, f, indent=2)
 EOF
         echo "✅ 自动配置完成"
+        
+        # 更新 OpenClaw allowedOrigins
+        echo "🔧 配置 OpenClaw allowedOrigins..."
+        python3 << 'PYEOF'
+import json
+import os
+
+openclaw_config = os.path.expanduser('~/.openclaw/openclaw.json')
+
+try:
+    with open(openclaw_config, 'r') as f:
+        config = json.load(f)
+    
+    # 获取当前 allowedOrigins
+    origins = config.get('gateway', {}).get('controlUi', {}).get('allowedOrigins', [])
+    
+    # 添加必需的 origins
+    required_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+    added = []
+    for origin in required_origins:
+        if origin not in origins:
+            origins.append(origin)
+            added.append(origin)
+    
+    # 更新配置
+    if 'gateway' not in config:
+        config['gateway'] = {}
+    if 'controlUi' not in config['gateway']:
+        config['gateway']['controlUi'] = {}
+    config['gateway']['controlUi']['allowedOrigins'] = origins
+    
+    # 保存
+    with open(openclaw_config, 'w') as f:
+        json.dump(config, f, indent=2)
+    
+    if added:
+        print(f"✅ 已添加 {len(added)} 个 origins 到 allowedOrigins")
+        print("⚠️  请重启 OpenClaw Gateway 使配置生效:")
+        print("   systemctl --user restart openclaw-gateway")
+        print("   或: openclaw gateway restart")
+    else:
+        print("✅ allowedOrigins 已配置")
+except Exception as e:
+    print(f"⚠️  无法自动更新 allowedOrigins: {e}")
+    print("   请手动添加 'http://localhost:8080' 到 ~/.openclaw/openclaw.json")
+PYEOF
     fi
 else
     echo "⚠️  未检测到 OpenClaw，请手动编辑 config.json"

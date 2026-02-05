@@ -35,6 +35,32 @@ npm start
 
 在浏览器中访问 `http://localhost:8080`！
 
+## ⚠️ 重要：OpenClaw 网关配置
+
+**连接前必须确保 OpenClaw 网关允许 OpenGloves 的访问！**
+
+编辑 `~/.openclaw/openclaw.json`，在 `gateway.controlUi.allowedOrigins` 中添加 OpenGloves 的访问地址：
+
+```json
+{
+  "gateway": {
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:8080",      // 本机访问
+        "http://127.0.0.1:8080"       // 本机IP访问
+      ]
+    }
+  }
+}
+```
+
+修改后重启 Gateway：
+```bash
+systemctl --user restart openclaw-gateway
+# 或
+openclaw gateway restart
+```
+
 ## 📝 配置说明
 
 编辑 `config.json` 来自定义你的设置：
