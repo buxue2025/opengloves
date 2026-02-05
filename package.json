@@ -1,6 +1,6 @@
 {
   "name": "opengloves",
-  "version": "1.0.0",
+  "version": "0.01",
   "description": "A standalone, mobile-friendly web interface for chatting with your OpenClaw AI assistant. Lightweight, modern, and easy to deploy.",
   "main": "server.js",
   "type": "module",
