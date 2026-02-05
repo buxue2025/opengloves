@@ -4,6 +4,7 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 
 ## ✨ Features
 
+- 🔧 **Easy to use on phones** - Install via browser after first visit OpenGloves.
 - 🎨 **Modern Dark Theme** - Beautiful, easy-on-the-eyes interface
 - 📱 **Mobile-Friendly** - Responsive design works on all devices
 - 🔒 **Secure** - HTTPS support with automatic certificate generation
@@ -11,6 +12,7 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 - 📎 **File Upload** - Send images and documents to your AI
 - 🌐 **LAN Access** - Access from any device on your network
 - 🔧 **Zero Config** - Auto-detects gateway and works out of the box
+- 🔧 **Easy** - Auto-detects gateway and works out of the box
 
 ## 🚀 Quick Start
 
