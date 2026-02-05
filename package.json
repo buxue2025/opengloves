@@ -1,0 +1,28 @@
+{
+  "name": "opengloves",
+  "version": "1.0.0",
+  "description": "A standalone, mobile-friendly web interface for chatting with your OpenClaw AI assistant. Lightweight, modern, and easy to deploy.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "start:http": "node server.js",
+    "start:https": "node -e \"const fs=require('fs');const c=JSON.parse(fs.readFileSync('config.json'));c.server.https.enabled=true;c.server.http.enabled=false;fs.writeFileSync('config.json',JSON.stringify(c,null,2));\" && node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "openclaw",
+    "ai",
+    "chat",
+    "assistant",
+    "web",
+    "interface"
+  ],
+  "author": "OpenGloves Contributors",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

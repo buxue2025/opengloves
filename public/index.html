@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>OpenGloves</title>
+    <meta name="description" content="Lightweight chat interface for OpenClaw AI assistant">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧤</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧤</text></svg>">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🧤 OpenGloves</h1>
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-dot disconnected"></span>
+                <span class="status-text">Disconnected</span>
+            </div>
+        </header>
+
+        <main class="main">
+            <div class="chat-container">
+                <div class="messages" id="messages">
+                    <!-- Messages will be inserted here -->
+                    <div class="message welcome">
+                        <div class="message-content">Welcome! Connect to your OpenClaw gateway to start chatting.</div>
+                    </div>
+                </div>
+                <div class="input-area">
+                    <div class="input-tools">
+                        <button id="fileButton" class="file-button" title="Attach file">
+                            <span>+</span>
+                            <input type="file" id="fileInput" hidden>
+                        </button>
+                    </div>
+                    <textarea id="messageInput" placeholder="Type your message..." rows="1" disabled></textarea>
+                    <button id="sendButton" disabled>Send</button>
+                </div>
+                <div id="filePreviews" class="file-previews hidden"></div>
+            </div>
+
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3>Connection</h3>
+                    <div class="form-group">
+                        <label for="gatewayUrl">Gateway URL</label>
+                        <input type="text" id="gatewayUrl" placeholder="ws://localhost:18789" value="ws://localhost:18789">
+                        <small id="gatewayUrlHint" style="color: #06b6d4;"></small>
+                    </div>
+                    <div class="form-group">
+                        <label for="token">Token (recommended)</label>
+                        <input type="password" id="token" placeholder="Gateway authentication token">
+                        <small>Use token from gateway config (auth.token)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password (alternative)</label>
+                        <input type="password" id="password" placeholder="Password if gateway uses password auth">
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionKey">Session Key</label>
+                        <input type="text" id="sessionKey" placeholder="main" value="main">
+                        <small>Use 'main' for your personal session</small>
+                    </div>
+                    <div class="button-group">
+                        <button id="connectButton">Connect</button>
+                        <button id="disconnectButton" disabled>Disconnect</button>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>Settings</h3>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoScroll" checked>
+                            <span>Auto-scroll to new messages</span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="soundEnabled" checked>
+                            <span>Enable notification sound</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>Info</h3>
+                    <p>This is a lightweight chat interface for OpenClaw. It connects directly to your gateway via WebSocket.</p>
+                    <p>For public access, ensure your gateway is secured with a password and TLS (WSS).</p>
+                </div>
+            </aside>
+        </main>
+
+        <footer class="footer">
+            <p>OpenGloves v1.0 | <a href="https://docs.openclaw.ai" target="_blank">Docs</a></p>
+        </footer>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="app.js" type="module"></script>
+</body>
+</html>

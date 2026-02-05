@@ -1,0 +1,30 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "http": {
+      "enabled": true,
+      "port": 8080
+    },
+    "https": {
+      "enabled": false,
+      "port": 8443,
+      "autoGenerateCert": true,
+      "certPath": "./certs/cert.pem",
+      "keyPath": "./certs/key.pem"
+    }
+  },
+  "gateway": {
+    "url": "ws://localhost:18789",
+    "token": "your-gateway-token-here",
+    "autoDetectUrl": true,
+    "fallbackUrls": []
+  },
+  "security": {
+    "trustProxy": false,
+    "corsOrigins": ["*"]
+  },
+  "ui": {
+    "title": "OpenGloves",
+    "sessionKey": "main"
+  }
+}
