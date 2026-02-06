@@ -77,9 +77,17 @@ function createWebSocketProxy(server, gatewayUrl) {
 
   wss.on('connection', (clientWs, request) => {
     console.log('🟢 New WebSocket connection from', request.socket.remoteAddress);
+    console.log('   Origin:', request.headers.origin);
+    console.log('   Host:', request.headers.host);
     
-    // Connect to local OpenClaw Gateway
-    const gatewayWs = new WebSocket(gatewayUrl);
+    // Connect to local OpenClaw Gateway with proper headers
+    const headers = {
+      'Origin': request.headers.origin || `http://${request.headers.host}`,
+      'User-Agent': request.headers['user-agent'] || 'OpenGloves-Proxy/1.0',
+    };
+    
+    console.log('🔗 Connecting to gateway with headers:', headers);
+    const gatewayWs = new WebSocket(gatewayUrl, { headers });
     
     gatewayWs.on('open', () => {
       console.log('✅ Connected to OpenClaw Gateway');
@@ -87,32 +95,63 @@ function createWebSocketProxy(server, gatewayUrl) {
     
     gatewayWs.on('error', (error) => {
       console.error('❌ Gateway connection error:', error.message);
+      console.error('   Gateway URL:', gatewayUrl);
       clientWs.close(1006, 'Gateway connection failed');
     });
     
-    gatewayWs.on('close', () => {
-      console.log('🔴 Gateway connection closed');
-      clientWs.close();
-    });
-    
-    // Forward messages from client to gateway
-    clientWs.on('message', (data) => {
-      if (gatewayWs.readyState === WebSocket.OPEN) {
-        gatewayWs.send(data);
+    gatewayWs.on('close', (code, reason) => {
+      console.log('🔴 Gateway connection closed', { code, reason: reason.toString() });
+      if (clientWs.readyState === WebSocket.OPEN) {
+        clientWs.close();
       }
     });
     
-    // Forward messages from gateway to client
+    // Forward messages from client to gateway with logging
+    clientWs.on('message', (data) => {
+      try {
+        const message = data.toString();
+        console.log('📤 Client → Gateway:', message.substring(0, 100) + '...');
+        if (gatewayWs.readyState === WebSocket.OPEN) {
+          gatewayWs.send(data);
+        } else {
+          console.log('⚠️ Gateway not ready, dropping message');
+        }
+      } catch (error) {
+        console.error('❌ Error forwarding client message:', error);
+      }
+    });
+    
+    // Forward messages from gateway to client with proper data handling
     gatewayWs.on('message', (data) => {
-      if (clientWs.readyState === WebSocket.OPEN) {
-        clientWs.send(data);
+      try {
+        // Handle both text and binary data
+        let message;
+        if (Buffer.isBuffer(data)) {
+          message = data.toString();
+        } else {
+          message = data.toString();
+        }
+        
+        console.log('📥 Gateway → Client:', message.substring(0, 100) + '...');
+        
+        if (clientWs.readyState === WebSocket.OPEN) {
+          // Send as text to ensure JSON parsing works
+          clientWs.send(message);
+        } else {
+          console.log('⚠️ Client not ready, dropping message');
+        }
+      } catch (error) {
+        console.error('❌ Error forwarding gateway message:', error);
+        console.log('   Raw data:', data);
       }
     });
     
     // Handle client disconnect
-    clientWs.on('close', () => {
-      console.log('🔴 Client disconnected');
-      gatewayWs.close();
+    clientWs.on('close', (code, reason) => {
+      console.log('🔴 Client disconnected', { code, reason: reason.toString() });
+      if (gatewayWs.readyState === WebSocket.OPEN) {
+        gatewayWs.close();
+      }
     });
   });
   
@@ -139,12 +178,42 @@ function createApiHandler(req, res) {
         autoDetectUrl: false,  // Disable auto-detect since we're using proxy
         fallbackUrls: []
       },
-      ui: config.ui
+      ui: {
+        title: config.ui.title,
+        sessionKey: config.ui.sessionKey
+        // Don't send accessPassword to client
+      }
     };
     
     res.end(JSON.stringify(clientConfig));
     return true;
   }
+  
+  if (req.url === '/api/auth' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    
+    req.on('end', () => {
+      try {
+        const { password } = JSON.parse(body);
+        const isValid = password === config.ui.accessPassword;
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ 
+          success: isValid,
+          message: isValid ? 'Authentication successful' : 'Invalid password'
+        }));
+      } catch (error) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: false, message: 'Invalid request' }));
+      }
+    });
+    
+    return true;
+  }
+  
   return false;
 }
 

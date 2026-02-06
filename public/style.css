@@ -165,6 +165,53 @@ body {
     50% { transform: scale(1.2); opacity: 0.8; }
 }
 
+/* Header Layout */
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.header-buttons {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.header-btn {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--primary);
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    min-width: 80px;
+    text-align: center;
+}
+
+.header-btn:hover:not(:disabled) {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+}
+
+.header-btn:disabled {
+    background: var(--surface);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.header-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
 /* Main Content */
 .main {
     display: flex;
@@ -303,9 +350,10 @@ body {
     position: relative;
 }
 
-.input-tools {
+.input-buttons {
     display: flex;
     gap: var(--space-xs);
+    align-items: flex-end;
 }
 
 .file-button {
@@ -759,6 +807,25 @@ button:disabled {
         align-items: stretch;
         gap: var(--space-md);
     }
+    
+    .header-left h1 {
+        font-size: 1.5rem;
+    }
+
+    .header-right {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-sm);
+    }
+    
+    .header-buttons {
+        justify-content: stretch;
+    }
+    
+    .header-btn {
+        flex: 1;
+        min-width: auto;
+    }
 
     .connection-status {
         align-self: flex-start;
@@ -775,29 +842,49 @@ button:disabled {
     }
 
     .input-area {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: flex-end;
         padding: var(--space-md);
+        gap: var(--space-sm);
     }
 
-    .input-tools {
-        align-self: flex-start;
+    .input-buttons {
+        flex-direction: column;
+        gap: var(--space-xs);
+        align-items: center;
+        min-width: 44px;
+    }
+    
+    .file-button {
+        width: 44px;
+        height: 44px;
     }
 
     textarea {
-        min-height: 60px;
+        min-height: 44px;
+        flex: 1;
     }
 
     #sendButton {
-        width: 100%;
+        width: 44px;
+        min-width: 44px;
+        padding: 0;
+        font-size: 0;
+        position: relative;
+    }
+    
+    #sendButton::after {
+        content: "→";
+        font-size: 1.2rem;
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .sidebar {
         padding: var(--space-md);
-    }
-
-    .button-group {
-        flex-direction: column;
     }
 }
 

@@ -288,9 +288,8 @@ class ChatUI {
         this.pendingFiles = [];
         this.serverConfig = null; // Will be loaded from server
         this.settings = {
-            gatewayUrl: 'ws://localhost:18789',
-            token: '',
-            password: '',
+            gatewayUrl: '',  // Will be set from server config
+            token: '',       // Will be set from server config  
             sessionKey: 'main',
             autoScroll: true,
             soundEnabled: true,
@@ -374,10 +373,7 @@ class ChatUI {
             messages: document.getElementById('messages'),
             messageInput: document.getElementById('messageInput'),
             sendButton: document.getElementById('sendButton'),
-            gatewayUrl: document.getElementById('gatewayUrl'),
-            gatewayUrlHint: document.getElementById('gatewayUrlHint'),
-            token: document.getElementById('token'),
-            password: document.getElementById('password'),
+            accessPassword: document.getElementById('accessPassword'),
             sessionKey: document.getElementById('sessionKey'),
             connectButton: document.getElementById('connectButton'),
             disconnectButton: document.getElementById('disconnectButton'),
@@ -390,20 +386,9 @@ class ChatUI {
         };
 
         // Set initial values from settings
-        this.elements.gatewayUrl.value = this.settings.gatewayUrl;
-        this.elements.token.value = this.settings.token;
-        this.elements.password.value = this.settings.password;
         this.elements.sessionKey.value = this.settings.sessionKey;
         this.elements.autoScroll.checked = this.settings.autoScroll;
         this.elements.soundEnabled.checked = this.settings.soundEnabled;
-        
-        // Show hint if accessing from remote
-        const currentHost = window.location.hostname;
-        if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
-            this.elements.gatewayUrlHint.textContent = `💡 Remote access detected. Auto-configured for ${currentHost}`;
-        } else {
-            this.elements.gatewayUrlHint.textContent = '💡 Local access. Use IP address for remote devices.';
-        }
     }
 
     bindEvents() {
@@ -427,10 +412,7 @@ class ChatUI {
         this.elements.fileButton.addEventListener('click', () => this.elements.fileInput.click());
         this.elements.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
 
-        // Save settings on change
-        this.elements.gatewayUrl.addEventListener('change', () => this.updateSetting('gatewayUrl'));
-        this.elements.token.addEventListener('change', () => this.updateSetting('token'));
-        this.elements.password.addEventListener('change', () => this.updateSetting('password'));
+        // Save settings on change  
         this.elements.sessionKey.addEventListener('change', () => this.updateSetting('sessionKey'));
         this.elements.autoScroll.addEventListener('change', () => this.updateSetting('autoScroll'));
         this.elements.soundEnabled.addEventListener('change', () => this.updateSetting('soundEnabled'));
@@ -563,13 +545,7 @@ class ChatUI {
     }
 
     updateSetting(key) {
-        if (key === 'gatewayUrl') {
-            this.settings.gatewayUrl = this.elements.gatewayUrl.value;
-        } else if (key === 'token') {
-            this.settings.token = this.elements.token.value;
-        } else if (key === 'password') {
-            this.settings.password = this.elements.password.value;
-        } else if (key === 'sessionKey') {
+        if (key === 'sessionKey') {
             this.settings.sessionKey = this.elements.sessionKey.value;
         } else if (key === 'autoScroll') {
             this.settings.autoScroll = this.elements.autoScroll.checked;
@@ -580,22 +556,40 @@ class ChatUI {
     }
 
     async connect() {
-        const url = this.elements.gatewayUrl.value.trim();
-        if (!url) {
-            this.showToast('Please enter a gateway URL', 'error');
+        // Validate access password first
+        const accessPassword = this.elements.accessPassword.value.trim();
+        if (!accessPassword) {
+            this.showToast('Please enter the access password', 'error');
             return;
         }
 
-        this.updateSetting('gatewayUrl');
-        this.updateSetting('password');
+        // Authenticate with server
+        try {
+            const response = await fetch('/api/auth', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ password: accessPassword })
+            });
+            
+            const result = await response.json();
+            if (!result.success) {
+                this.showToast(result.message || 'Invalid access password', 'error');
+                return;
+            }
+        } catch (error) {
+            this.showToast('Authentication failed. Please try again.', 'error');
+            return;
+        }
+
         this.updateSetting('sessionKey');
 
         this.setStatus('connecting', 'Connecting...');
 
         // Disable connection controls
         this.elements.connectButton.disabled = true;
-        this.elements.gatewayUrl.disabled = true;
-        this.elements.password.disabled = true;
+        this.elements.accessPassword.disabled = true;
         this.elements.sessionKey.disabled = true;
 
         this.gatewayClient = new GatewayClient({
@@ -643,8 +637,7 @@ class ChatUI {
 
         // Re-enable connection controls
         this.elements.connectButton.disabled = false;
-        this.elements.gatewayUrl.disabled = false;
-        this.elements.password.disabled = false;
+        this.elements.accessPassword.disabled = false;
         this.elements.sessionKey.disabled = false;
 
         this.showToast('Disconnected', 'info');
@@ -669,8 +662,7 @@ class ChatUI {
         
         // Re-enable connection controls
         this.elements.connectButton.disabled = false;
-        this.elements.gatewayUrl.disabled = false;
-        this.elements.password.disabled = false;
+        this.elements.accessPassword.disabled = false;
         this.elements.sessionKey.disabled = false;
     }
 
@@ -681,8 +673,7 @@ class ChatUI {
         
         // Re-enable connection controls
         this.elements.connectButton.disabled = false;
-        this.elements.gatewayUrl.disabled = false;
-        this.elements.password.disabled = false;
+        this.elements.accessPassword.disabled = false;
         this.elements.sessionKey.disabled = false;
     }
 

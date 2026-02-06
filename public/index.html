@@ -16,10 +16,18 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>🧤 OpenGloves</h1>
-            <div class="connection-status" id="connectionStatus">
-                <span class="status-dot disconnected"></span>
-                <span class="status-text">Disconnected</span>
+            <div class="header-left">
+                <h1>🧤 OpenGloves</h1>
+            </div>
+            <div class="header-right">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot disconnected"></span>
+                    <span class="status-text">Disconnected</span>
+                </div>
+                <div class="header-buttons">
+                    <button id="connectButton" class="header-btn">Connect</button>
+                    <button id="disconnectButton" class="header-btn" disabled>Disconnect</button>
+                </div>
             </div>
         </header>
 
@@ -32,43 +40,34 @@
                     </div>
                 </div>
                 <div class="input-area">
-                    <div class="input-tools">
+                    <textarea id="messageInput" placeholder="Type your message..." rows="1" disabled></textarea>
+                    <div class="input-buttons">
                         <button id="fileButton" class="file-button" title="Attach file">
-                            <span>+</span>
+                            <span>📎</span>
                             <input type="file" id="fileInput" hidden>
                         </button>
+                        <button id="sendButton" disabled>Send</button>
                     </div>
-                    <textarea id="messageInput" placeholder="Type your message..." rows="1" disabled></textarea>
-                    <button id="sendButton" disabled>Send</button>
                 </div>
                 <div id="filePreviews" class="file-previews hidden"></div>
             </div>
 
             <aside class="sidebar">
                 <div class="sidebar-section">
-                    <h3>Connection</h3>
+                    <h3>Access</h3>
                     <div class="form-group">
-                        <label for="gatewayUrl">Gateway URL</label>
-                        <input type="text" id="gatewayUrl" placeholder="ws://localhost:18789" value="ws://localhost:18789">
-                        <small id="gatewayUrlHint" style="color: #06b6d4;"></small>
+                        <label for="accessPassword">Password</label>
+                        <input type="password" id="accessPassword" placeholder="Enter access password">
+                        <small>Password set during OpenGloves installation</small>
                     </div>
-                    <div class="form-group">
-                        <label for="token">Token (recommended)</label>
-                        <input type="password" id="token" placeholder="Gateway authentication token">
-                        <small>Use token from gateway config (auth.token)</small>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password (alternative)</label>
-                        <input type="password" id="password" placeholder="Password if gateway uses password auth">
-                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3>Gateway Settings</h3>
                     <div class="form-group">
                         <label for="sessionKey">Session Key</label>
                         <input type="text" id="sessionKey" placeholder="main" value="main">
                         <small>Use 'main' for your personal session</small>
-                    </div>
-                    <div class="button-group">
-                        <button id="connectButton">Connect</button>
-                        <button id="disconnectButton" disabled>Disconnect</button>
                     </div>
                 </div>
 
