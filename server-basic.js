@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * OpenGloves Server with WebSocket Proxy
- * Includes built-in WebSocket proxy to forward connections to local OpenClaw Gateway
- * This eliminates the need to expose OpenClaw port 18789 to the internet
+ * OpenGloves Server
+ * A standalone web server for OpenGloves chat interface
+ * Supports both HTTP and HTTPS with automatic self-signed certificate generation
  */
 
 import http from 'http';
@@ -11,7 +11,6 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { WebSocketServer, WebSocket } from 'ws';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 
@@ -56,67 +55,18 @@ function generateSelfSignedCert(certPath, keyPath) {
   }
 
   try {
+    // Generate certificate using OpenSSL
     const cmd = `openssl req -x509 -newkey rsa:4096 -keyout "${keyPath}" -out "${certPath}" -days 365 -nodes -subj "/CN=OpenGloves/O=OpenGloves/C=US"`;
     execSync(cmd, { stdio: 'ignore' });
     console.log('✅ Certificate generated successfully');
+    console.log(`   Cert: ${certPath}`);
+    console.log(`   Key:  ${keyPath}`);
     return true;
   } catch (error) {
     console.error('❌ Failed to generate certificate:', error.message);
+    console.error('   Please ensure OpenSSL is installed on your system.');
     return false;
   }
-}
-
-// WebSocket proxy to OpenClaw Gateway
-function createWebSocketProxy(server, gatewayUrl) {
-  const wss = new WebSocketServer({ 
-    server,
-    path: '/gateway'
-  });
-
-  console.log('🔌 WebSocket proxy initialized on /gateway');
-
-  wss.on('connection', (clientWs, request) => {
-    console.log('🟢 New WebSocket connection from', request.socket.remoteAddress);
-    
-    // Connect to local OpenClaw Gateway
-    const gatewayWs = new WebSocket(gatewayUrl);
-    
-    gatewayWs.on('open', () => {
-      console.log('✅ Connected to OpenClaw Gateway');
-    });
-    
-    gatewayWs.on('error', (error) => {
-      console.error('❌ Gateway connection error:', error.message);
-      clientWs.close(1006, 'Gateway connection failed');
-    });
-    
-    gatewayWs.on('close', () => {
-      console.log('🔴 Gateway connection closed');
-      clientWs.close();
-    });
-    
-    // Forward messages from client to gateway
-    clientWs.on('message', (data) => {
-      if (gatewayWs.readyState === WebSocket.OPEN) {
-        gatewayWs.send(data);
-      }
-    });
-    
-    // Forward messages from gateway to client
-    gatewayWs.on('message', (data) => {
-      if (clientWs.readyState === WebSocket.OPEN) {
-        clientWs.send(data);
-      }
-    });
-    
-    // Handle client disconnect
-    clientWs.on('close', () => {
-      console.log('🔴 Client disconnected');
-      gatewayWs.close();
-    });
-  });
-  
-  return wss;
 }
 
 // Create API endpoint to serve config
@@ -127,17 +77,13 @@ function createApiHandler(req, res) {
       'Cache-Control': 'no-cache'
     });
     
-    // Update gateway URL to use proxy endpoint
-    const protocol = req.headers['x-forwarded-proto'] || 
-                    (req.connection.encrypted ? 'wss' : 'ws');
-    const host = req.headers['x-forwarded-host'] || req.headers['host'];
-    
+    // Only expose necessary config to client
     const clientConfig = {
       gateway: {
-        url: `${protocol}://${host}/gateway`,  // Use proxy endpoint
+        url: config.gateway.url,
         token: config.gateway.token,
-        autoDetectUrl: false,  // Disable auto-detect since we're using proxy
-        fallbackUrls: []
+        autoDetectUrl: config.gateway.autoDetectUrl,
+        fallbackUrls: config.gateway.fallbackUrls || []
       },
       ui: config.ui
     };
@@ -158,8 +104,11 @@ function createRequestHandler(publicDir) {
 
     // Parse URL
     let filePath = req.url === '/' ? '/index.html' : req.url;
+    
+    // Remove query string
     filePath = filePath.split('?')[0];
     
+    // Security: prevent directory traversal
     if (filePath.includes('..')) {
       res.writeHead(403, { 'Content-Type': 'text/plain' });
       res.end('Forbidden');
@@ -170,7 +119,9 @@ function createRequestHandler(publicDir) {
     const ext = path.extname(fullPath).toLowerCase();
     const contentType = mimeTypes[ext] || 'application/octet-stream';
 
+    // Check if file exists
     if (!fs.existsSync(fullPath) || !fs.statSync(fullPath).isFile()) {
+      // SPA fallback: serve index.html for unknown routes
       const indexPath = path.join(publicDir, 'index.html');
       if (fs.existsSync(indexPath)) {
         res.writeHead(200, { 
@@ -185,6 +136,7 @@ function createRequestHandler(publicDir) {
       return;
     }
 
+    // Serve file
     res.writeHead(200, { 
       'Content-Type': contentType,
       'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=3600'
@@ -197,22 +149,16 @@ function createRequestHandler(publicDir) {
 function startServer() {
   const publicDir = path.join(__dirname, 'public');
   const requestHandler = createRequestHandler(publicDir);
-  const servers = [];
 
-  // Get local gateway URL (always use localhost for internal connection)
-  const gatewayUrl = config.gateway.url.replace(/ws:\/\/[^:]+:/, 'ws://localhost:');
-  console.log('🔌 Gateway URL for proxy:', gatewayUrl);
+  const servers = [];
 
   // Start HTTP server
   if (config.server.http.enabled) {
     const httpServer = http.createServer(requestHandler);
-    
-    // Add WebSocket proxy
-    createWebSocketProxy(httpServer, gatewayUrl);
-    
     httpServer.listen(config.server.http.port, config.server.host, () => {
       console.log(`🌐 HTTP server running on http://${config.server.host}:${config.server.http.port}`);
       
+      // Show local network IPs
       const networkInterfaces = os.networkInterfaces();
       const ips = [];
       for (const name of Object.keys(networkInterfaces)) {
@@ -237,16 +183,24 @@ function startServer() {
     const certPath = path.resolve(__dirname, config.server.https.certPath);
     const keyPath = path.resolve(__dirname, config.server.https.keyPath);
 
+    // Check if certificates exist, generate if needed
     if (!fs.existsSync(certPath) || !fs.existsSync(keyPath)) {
       if (config.server.https.autoGenerateCert) {
         if (!generateSelfSignedCert(certPath, keyPath)) {
           console.error('❌ Cannot start HTTPS server without certificates');
-          if (servers.length === 0) process.exit(1);
+          if (servers.length === 0) {
+            process.exit(1);
+          }
           return;
         }
       } else {
-        console.error('❌ HTTPS certificates not found');
-        if (servers.length === 0) process.exit(1);
+        console.error('❌ HTTPS certificates not found:');
+        console.error(`   Cert: ${certPath}`);
+        console.error(`   Key:  ${keyPath}`);
+        console.error('   Please generate certificates or enable autoGenerateCert in config.json');
+        if (servers.length === 0) {
+          process.exit(1);
+        }
         return;
       }
     }
@@ -257,13 +211,10 @@ function startServer() {
     };
 
     const httpsServer = https.createServer(httpsOptions, requestHandler);
-    
-    // Add WebSocket proxy
-    createWebSocketProxy(httpsServer, gatewayUrl);
-    
     httpsServer.listen(config.server.https.port, config.server.host, () => {
       console.log(`🔒 HTTPS server running on https://${config.server.host}:${config.server.https.port}`);
       
+      // Show local network IPs
       const networkInterfaces = os.networkInterfaces();
       const ips = [];
       for (const name of Object.keys(networkInterfaces)) {
@@ -282,6 +233,7 @@ function startServer() {
       
       console.log('\n⚠️  Using self-signed certificate - your browser will show a security warning.');
       console.log('   This is normal! Click "Advanced" → "Continue" to proceed.');
+      console.log(`   Or import the certificate: ${certPath}`);
     });
     servers.push(httpsServer);
   }
@@ -291,8 +243,8 @@ function startServer() {
     process.exit(1);
   }
 
-  console.log('\n✨ OpenGloves with WebSocket Proxy is ready!');
-  console.log(`   Gateway: ${gatewayUrl} (proxied to /gateway)`);
+  console.log('\n✨ OpenGloves is ready!');
+  console.log(`   Gateway: ${config.gateway.url}`);
   console.log('   Press Ctrl+C to stop\n');
 
   // Graceful shutdown

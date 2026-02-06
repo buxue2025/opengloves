@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "start:proxy": "node server-with-proxy.js",
+    "start:basic": "node server-basic.js",
     "start:http": "node server.js",
     "start:https": "node -e \"const fs=require('fs');const c=JSON.parse(fs.readFileSync('config.json'));c.server.https.enabled=true;c.server.http.enabled=false;fs.writeFileSync('config.json',JSON.stringify(c,null,2));\" && node server.js",
     "dev": "node server.js"
@@ -26,6 +26,5 @@
   },
   "dependencies": {
     "ws": "^8.19.0"
-  },
-  "devDependencies": {}
+  }
 }

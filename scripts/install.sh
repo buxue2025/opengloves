@@ -231,6 +231,19 @@ EOF
     fi
 fi
 
+# Install dependencies
+info "Installing dependencies..."
+if [ -f "$INSTALL_DIR/package.json" ]; then
+    if command -v npm &> /dev/null; then
+        cd "$INSTALL_DIR"
+        npm install --omit=dev > /dev/null 2>&1
+        success "Dependencies installed"
+    else
+        warning "npm not found. Dependencies not installed."
+        warning "Please run 'npm install' manually after installation."
+    fi
+fi
+
 # Create necessary directories
 info "Creating directories..."
 mkdir -p "$INSTALL_DIR/certs"
