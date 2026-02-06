@@ -288,8 +288,8 @@ class ChatUI {
         this.pendingFiles = [];
         this.serverConfig = null; // Will be loaded from server
         this.settings = {
-            gatewayUrl: '',  // Will be set from server config
-            token: '',       // Will be set from server config  
+            gatewayUrl: 'ws://localhost:18789',  // Default, will be overridden by server config
+            token: '',                           // Will be set from server config  
             sessionKey: 'main',
             autoScroll: true,
             soundEnabled: true,
@@ -595,7 +595,6 @@ class ChatUI {
         this.gatewayClient = new GatewayClient({
             url: this.settings.gatewayUrl,
             token: this.settings.token || undefined,
-            password: this.settings.password || undefined,
             sessionKey: this.settings.sessionKey,
             onConnect: () => this.onGatewayConnect(),
             onDisconnect: () => this.onGatewayDisconnect(),
