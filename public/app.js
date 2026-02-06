@@ -307,6 +307,7 @@ class ChatUI {
         this.initElements();
         this.bindEvents();
         this.initServiceWorker();
+        this.initPWA();
     }
 
     async loadServerConfig() {
@@ -377,12 +378,23 @@ class ChatUI {
             sessionKey: document.getElementById('sessionKey'),
             connectButton: document.getElementById('connectButton'),
             disconnectButton: document.getElementById('disconnectButton'),
+            // Mobile elements
+            mobileAccessPassword: document.getElementById('mobileAccessPassword'),
+            mobileConnectButton: document.getElementById('mobileConnectButton'),
+            mobileDisconnectButton: document.getElementById('mobileDisconnectButton'),
+            mobileConnectionStatus: document.getElementById('mobileConnectionStatus'),
+            mobileStatusDot: document.querySelector('.mobile-status-dot'),
+            mobileStatusText: document.querySelector('.mobile-status-text'),
+            // Other elements
             autoScroll: document.getElementById('autoScroll'),
             soundEnabled: document.getElementById('soundEnabled'),
             toast: document.getElementById('toast'),
             fileButton: document.getElementById('fileButton'),
             fileInput: document.getElementById('fileInput'),
             filePreviews: document.getElementById('filePreviews'),
+            // PWA elements
+            pwaInstall: document.getElementById('pwaInstall'),
+            installPWAButton: document.getElementById('installPWAButton'),
         };
 
         // Set initial values from settings
@@ -392,8 +404,13 @@ class ChatUI {
     }
 
     bindEvents() {
+        // Desktop connection buttons
         this.elements.connectButton.addEventListener('click', () => this.connect());
         this.elements.disconnectButton.addEventListener('click', () => this.disconnect());
+        
+        // Mobile connection buttons
+        this.elements.mobileConnectButton.addEventListener('click', () => this.connect(true));
+        this.elements.mobileDisconnectButton.addEventListener('click', () => this.disconnect());
         this.elements.sendButton.addEventListener('click', () => this.sendMessage());
         this.elements.messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -555,9 +572,12 @@ class ChatUI {
         this.saveSettings();
     }
 
-    async connect() {
-        // Validate access password first
-        const accessPassword = this.elements.accessPassword.value.trim();
+    async connect(fromMobile = false) {
+        // Get access password from appropriate input
+        const accessPassword = fromMobile 
+            ? this.elements.mobileAccessPassword.value.trim()
+            : this.elements.accessPassword.value.trim();
+            
         if (!accessPassword) {
             this.showToast('Please enter the access password', 'error');
             return;
@@ -587,9 +607,9 @@ class ChatUI {
 
         this.setStatus('connecting', 'Connecting...');
 
-        // Disable connection controls
-        this.elements.connectButton.disabled = true;
+        // Disable connection controls (handled by setStatus now)
         this.elements.accessPassword.disabled = true;
+        this.elements.mobileAccessPassword.disabled = true;
         this.elements.sessionKey.disabled = true;
 
         this.gatewayClient = new GatewayClient({
@@ -634,9 +654,9 @@ class ChatUI {
         this.setStatus('disconnected', 'Disconnected');
         this.disableChat();
 
-        // Re-enable connection controls
-        this.elements.connectButton.disabled = false;
+        // Re-enable connection controls (buttons handled by setStatus)
         this.elements.accessPassword.disabled = false;
+        this.elements.mobileAccessPassword.disabled = false;
         this.elements.sessionKey.disabled = false;
 
         this.showToast('Disconnected', 'info');
@@ -659,9 +679,9 @@ class ChatUI {
         this.disableChat();
         this.showToast('Disconnected from gateway', 'info');
         
-        // Re-enable connection controls
-        this.elements.connectButton.disabled = false;
+        // Re-enable connection controls (buttons handled by setStatus)
         this.elements.accessPassword.disabled = false;
+        this.elements.mobileAccessPassword.disabled = false;
         this.elements.sessionKey.disabled = false;
     }
 
@@ -670,9 +690,9 @@ class ChatUI {
         this.setStatus('disconnected', 'Connection Error');
         this.showToast('Connection error: ' + (error.message || 'Unknown error'), 'error');
         
-        // Re-enable connection controls
-        this.elements.connectButton.disabled = false;
+        // Re-enable connection controls (buttons handled by setStatus)
         this.elements.accessPassword.disabled = false;
+        this.elements.mobileAccessPassword.disabled = false;
         this.elements.sessionKey.disabled = false;
     }
 
@@ -682,14 +702,27 @@ class ChatUI {
     }
 
     setStatus(status, text) {
+        // Update desktop status
         const dot = this.elements.statusDot;
         const statusText = this.elements.statusText;
-
         dot.className = 'status-dot ' + status;
         statusText.textContent = text;
 
-        // Update disconnect button
-        this.elements.disconnectButton.disabled = status !== 'connected';
+        // Update mobile status
+        const mobileDot = this.elements.mobileStatusDot;
+        const mobileStatusText = this.elements.mobileStatusText;
+        mobileDot.className = 'mobile-status-dot ' + status;
+        mobileStatusText.textContent = text;
+
+        // Update disconnect buttons
+        const isConnected = status === 'connected';
+        this.elements.disconnectButton.disabled = !isConnected;
+        this.elements.mobileDisconnectButton.disabled = !isConnected;
+        
+        // Update connect buttons
+        const isConnecting = status === 'connecting';
+        this.elements.connectButton.disabled = isConnecting || isConnected;
+        this.elements.mobileConnectButton.disabled = isConnecting || isConnected;
     }
 
     enableChat() {
@@ -995,6 +1028,54 @@ class ChatUI {
             } catch (error) {
                 console.error('ServiceWorker registration failed:', error);
             }
+        }
+    }
+
+    initPWA() {
+        let deferredPrompt;
+        
+        // Listen for beforeinstallprompt event
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // Show the PWA install button
+            this.elements.pwaInstall.style.display = 'block';
+        });
+
+        // Handle install button click
+        this.elements.installPWAButton.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                
+                // Wait for user response
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('PWA installation accepted');
+                    this.showToast('App installed successfully!', 'success');
+                } else {
+                    console.log('PWA installation declined');
+                }
+                
+                // Reset the prompt
+                deferredPrompt = null;
+                this.elements.pwaInstall.style.display = 'none';
+            }
+        });
+
+        // Handle app installed event
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            this.elements.pwaInstall.style.display = 'none';
+            this.showToast('App installed successfully!', 'success');
+        });
+
+        // Check if app is already installed
+        if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
+            console.log('Running as installed PWA');
+            this.elements.pwaInstall.style.display = 'none';
         }
     }
 

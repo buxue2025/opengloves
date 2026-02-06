@@ -212,6 +212,141 @@ body {
     transform: translateY(0);
 }
 
+/* Mobile Connection Panel (hidden by default) */
+.mobile-connection-panel {
+    display: none;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: var(--space-md);
+}
+
+.mobile-auth-section {
+    display: flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.mobile-password-input {
+    flex: 1;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.mobile-password-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.mobile-buttons {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.mobile-connect-btn, .mobile-disconnect-btn {
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    min-width: 80px;
+    text-align: center;
+}
+
+.mobile-connect-btn {
+    background: var(--primary);
+    color: var(--text-primary);
+}
+
+.mobile-connect-btn:hover:not(:disabled) {
+    background: var(--primary-dark);
+}
+
+.mobile-connect-btn:disabled {
+    background: var(--surface);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+}
+
+.mobile-disconnect-btn {
+    background: var(--error);
+    color: var(--text-primary);
+}
+
+.mobile-disconnect-btn:hover:not(:disabled) {
+    background: #dc2626;
+}
+
+.mobile-disconnect-btn:disabled {
+    background: var(--surface);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+}
+
+.mobile-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--surface-elevated);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+}
+
+.mobile-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.mobile-status-dot.connected {
+    background-color: var(--success);
+}
+
+.mobile-status-dot.disconnected {
+    background-color: var(--error);
+}
+
+.mobile-status-dot.connecting {
+    background-color: var(--warning);
+    animation: pulse 1.5s infinite;
+}
+
+/* PWA Install Button */
+.pwa-install {
+    margin-top: var(--space-md);
+    text-align: center;
+}
+
+.pwa-install-btn {
+    padding: var(--space-md) var(--space-lg);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    color: var(--text-primary);
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition-base);
+    box-shadow: var(--shadow-md);
+}
+
+.pwa-install-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.pwa-install-btn:active {
+    transform: translateY(0);
+}
+
 /* Main Content */
 .main {
     display: flex;
@@ -803,33 +938,25 @@ button:disabled {
     }
 
     .header {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
         gap: var(--space-md);
+        margin-bottom: 0;
+        padding: var(--space-md) 0;
     }
     
     .header-left h1 {
         font-size: 1.5rem;
+        margin: 0;
     }
 
     .header-right {
-        flex-direction: column;
-        align-items: stretch;
-        gap: var(--space-sm);
+        display: none; /* Hide desktop connection controls on mobile */
     }
     
-    .header-buttons {
-        justify-content: stretch;
-    }
-    
-    .header-btn {
-        flex: 1;
-        min-width: auto;
-    }
-
-    .connection-status {
-        align-self: flex-start;
-        width: fit-content;
+    /* Show mobile connection panel */
+    .mobile-connection-panel {
+        display: block;
     }
 
     .messages {
