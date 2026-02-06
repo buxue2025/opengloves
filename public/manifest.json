@@ -1,7 +1,7 @@
 {
   "name": "OpenGloves",
   "short_name": "OpenGloves",
-  "description": "Standalone chat interface for OpenClaw AI assistant",
+  "description": "Standalone chat interface for OpenClaw AI assistant v2.0",
   "start_url": "./index.html",
   "display": "standalone",
   "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],

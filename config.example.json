@@ -25,6 +25,7 @@
   },
   "ui": {
     "title": "OpenGloves",
-    "sessionKey": "main"
+    "sessionKey": "main",
+    "accessPassword": "changeme123"
   }
 }
