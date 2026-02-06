@@ -4,7 +4,7 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 
 ## ✨ Features
 
-### 🆕 v2.0 New Features
+### 🆕 v0.02 New Features
 - ⚡ **Slash Commands** - Quick actions with `/help`, `/clear`, `/export`, `/theme`, `/status`
 - 🔐 **Independent Authentication** - Secure access control separate from Gateway
 - 📱 **Enhanced Mobile UI** - Dedicated mobile interface with optimized controls

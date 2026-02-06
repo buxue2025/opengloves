@@ -1,6 +1,6 @@
 #!/bin/bash
 # save as: install-opengloves.sh
-echo "🧤 OpenGloves v2.0 安装脚本 for Mac Mini"
+echo "🧤 OpenGloves v0.02 安装脚本 for Mac Mini"
 # 检查 Node.js
 if ! command -v node &> /dev/null; then
     echo "❌ 需要 Node.js 18+"
@@ -37,7 +37,7 @@ with open('config.json', 'r') as f:
 config['gateway']['url'] = f'ws://${LOCAL_IP}:18789'
 config['gateway']['token'] = '$TOKEN'
 config['gateway']['fallbackUrls'] = ['ws://localhost:18789']
-# 添加 v2.0 UI 配置
+# 添加 v0.02 UI 配置
 if 'ui' not in config:
     config['ui'] = {}
 config['ui']['title'] = 'OpenGloves'
@@ -103,7 +103,7 @@ else
 import json
 with open('config.json', 'r') as f:
     config = json.load(f)
-# 添加 v2.0 UI 配置
+# 添加 v0.02 UI 配置
 if 'ui' not in config:
     config['ui'] = {}
 config['ui']['title'] = 'OpenGloves'
@@ -116,9 +116,9 @@ EOF
     ACCESS_PASSWORD="$DEFAULT_PASSWORD"
 fi
 echo ""
-echo "🎉 OpenGloves v2.0 安装完成！"
+echo "🎉 OpenGloves v0.02 安装完成！"
 echo ""
-echo "🆕 v2.0 新特性:"
+echo "🆕 v0.02 新特性:"
 echo "  ⚡ 快捷命令系统 (/help, /clear, /export, etc.)"
 echo "  🔐 独立访问密码认证"
 echo "  📱 移动端优化界面"
