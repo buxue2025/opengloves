@@ -380,6 +380,7 @@ class ChatUI {
             disconnectButton: document.getElementById('disconnectButton'),
             // Mobile elements
             mobileAccessPassword: document.getElementById('mobileAccessPassword'),
+            mobileSessionKey: document.getElementById('mobileSessionKey'),
             mobileConnectButton: document.getElementById('mobileConnectButton'),
             mobileDisconnectButton: document.getElementById('mobileDisconnectButton'),
             mobileConnectionStatus: document.getElementById('mobileConnectionStatus'),
@@ -399,6 +400,7 @@ class ChatUI {
 
         // Set initial values from settings
         this.elements.sessionKey.value = this.settings.sessionKey;
+        this.elements.mobileSessionKey.value = this.settings.sessionKey;
         this.elements.autoScroll.checked = this.settings.autoScroll;
         this.elements.soundEnabled.checked = this.settings.soundEnabled;
     }
@@ -431,6 +433,7 @@ class ChatUI {
 
         // Save settings on change  
         this.elements.sessionKey.addEventListener('change', () => this.updateSetting('sessionKey'));
+        this.elements.mobileSessionKey.addEventListener('change', () => this.updateMobileSetting('sessionKey'));
         this.elements.autoScroll.addEventListener('change', () => this.updateSetting('autoScroll'));
         this.elements.soundEnabled.addEventListener('change', () => this.updateSetting('soundEnabled'));
     }
@@ -564,10 +567,21 @@ class ChatUI {
     updateSetting(key) {
         if (key === 'sessionKey') {
             this.settings.sessionKey = this.elements.sessionKey.value;
+            // Sync to mobile input
+            this.elements.mobileSessionKey.value = this.settings.sessionKey;
         } else if (key === 'autoScroll') {
             this.settings.autoScroll = this.elements.autoScroll.checked;
         } else if (key === 'soundEnabled') {
             this.settings.soundEnabled = this.elements.soundEnabled.checked;
+        }
+        this.saveSettings();
+    }
+
+    updateMobileSetting(key) {
+        if (key === 'sessionKey') {
+            this.settings.sessionKey = this.elements.mobileSessionKey.value;
+            // Sync to desktop input
+            this.elements.sessionKey.value = this.settings.sessionKey;
         }
         this.saveSettings();
     }
@@ -603,7 +617,12 @@ class ChatUI {
             return;
         }
 
-        this.updateSetting('sessionKey');
+        // Update session key from mobile input if connecting from mobile
+        if (fromMobile) {
+            this.updateMobileSetting('sessionKey');
+        } else {
+            this.updateSetting('sessionKey');
+        }
 
         this.setStatus('connecting', 'Connecting...');
 

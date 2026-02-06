@@ -226,6 +226,10 @@ body {
     margin-bottom: var(--space-sm);
 }
 
+.mobile-settings {
+    margin-bottom: var(--space-sm);
+}
+
 .mobile-password-input {
     flex: 1;
     padding: var(--space-sm) var(--space-md);
@@ -237,6 +241,23 @@ body {
 }
 
 .mobile-password-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.mobile-session-input {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.mobile-session-input:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
@@ -1011,7 +1032,7 @@ button:disabled {
     }
 
     .sidebar {
-        padding: var(--space-md);
+        display: none; /* Hide sidebar completely on mobile */
     }
 }
 

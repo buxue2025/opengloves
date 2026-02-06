@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>OpenGloves</title>
     <meta name="description" content="Lightweight chat interface for OpenClaw AI assistant">
-    <link rel="stylesheet" href="style.css?v=2026020603">
+    <link rel="stylesheet" href="style.css?v=2026020604">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧤</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧤</text></svg>">
@@ -39,6 +39,9 @@
                     <button id="mobileConnectButton" class="mobile-connect-btn">Connect</button>
                     <button id="mobileDisconnectButton" class="mobile-disconnect-btn" disabled>Disconnect</button>
                 </div>
+            </div>
+            <div class="mobile-settings">
+                <input type="text" id="mobileSessionKey" placeholder="Session Key" value="main" class="mobile-session-input">
             </div>
             <div class="mobile-status" id="mobileConnectionStatus">
                 <span class="mobile-status-dot disconnected"></span>
@@ -122,6 +125,6 @@
 
     <div id="toast" class="toast"></div>
 
-    <script src="app.js?v=2026020603" type="module"></script>
+    <script src="app.js?v=2026020604" type="module"></script>
 </body>
 </html>
