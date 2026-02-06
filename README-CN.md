@@ -4,10 +4,16 @@
 
 ## ✨ 特性
 
+### 🆕 v2.0 新功能
+- ⚡ **快捷命令** - 使用 `/help`、`/clear`、`/export`、`/theme`、`/status` 等快速操作
+- 🔐 **独立认证系统** - 与网关认证分离的安全访问控制
+- 📱 **增强移动界面** - 专门的移动端界面，触控优化
+- 📲 **PWA 支持** - 可安装为手机和桌面原生应用
+
+### 核心功能
 - 🌐 **单端口访问** - 内置 WebSocket 代理，公网访问仅需开放 8080 端口
-- 🔧 **手机上易于使用** - 首次访问后可通过浏览器安装到手机
-- 🎨 **现代化深色主题** - 美观、护眼的界面设计
-- 📱 **移动端友好** - 响应式设计，适配所有设备
+- 🎨 **现代化主题** - 美观护眼界面，支持主题切换
+- 📱 **移动端优化** - 响应式设计，触控友好的控件
 - 🔒 **安全可靠** - 支持 HTTPS，自动生成证书
 - ⚡ **实时聊天** - 基于 WebSocket 的实时消息更新
 - 📎 **文件上传** - 发送图片和文档给 AI
@@ -36,6 +42,11 @@ npm start
 ```
 
 在浏览器中访问 `http://localhost:8080`！
+
+### 🔐 访问设置
+1. 输入访问密码：`changeme123`（默认）
+2. 点击 **Connect** 连接到 OpenClaw 网关
+3. 开始聊天或使用快捷命令如 `/help`
 
 ## ⚠️ 重要：OpenClaw 网关配置
 
@@ -85,6 +96,11 @@ openclaw gateway restart
     "url": "ws://localhost:18789",
     "token": "your-gateway-token-here",
     "autoDetectUrl": true
+  },
+  "ui": {
+    "title": "OpenGloves",
+    "sessionKey": "main",
+    "accessPassword": "changeme123"
   }
 }
 ```
@@ -97,6 +113,37 @@ openclaw gateway restart
 ```
 
 查找 `gateway.auth.token`。
+
+## ⚡ 快捷命令使用
+
+OpenGloves 支持便捷的快捷命令：
+
+- `/help` - 显示所有可用命令
+- `/clear` - 清空聊天记录
+- `/status` - 显示连接状态和统计信息
+- `/export [格式]` - 导出聊天记录（json/md/txt）
+- `/theme [模式]` - 切换主题（dark/light/auto）
+- `/reconnect` - 重新连接网关
+
+例如：输入 `/export md` 下载 Markdown 格式的聊天记录。
+
+## 📱 移动端和 PWA 使用
+
+### 移动端界面
+- 在移动设备上，OpenGloves 显示紧凑界面
+- 密码和连接控件组合在一起，便于访问
+- 触控优化的按钮和间距
+
+### 安装为应用（PWA）
+1. 在支持的浏览器中打开 OpenGloves（Chrome、Edge、Safari）
+2. 查找页面底部的"📱 安装为应用"按钮
+3. 点击安装为设备上的原生应用
+4. 从主屏幕/应用抽屉访问
+
+### 移动端技巧
+- 支持滑动手势导航
+- 通过相机或相册上传文件
+- 安装为 PWA 后支持离线功能
 
 ## 🔐 HTTPS 设置
 

@@ -4,10 +4,16 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 
 ## ✨ Features
 
+### 🆕 v2.0 New Features
+- ⚡ **Slash Commands** - Quick actions with `/help`, `/clear`, `/export`, `/theme`, `/status`
+- 🔐 **Independent Authentication** - Secure access control separate from Gateway
+- 📱 **Enhanced Mobile UI** - Dedicated mobile interface with optimized controls
+- 📲 **PWA Support** - Install as native app on mobile and desktop
+
+### Core Features
 - 🌐 **Single Port Access** - Built-in WebSocket proxy, only needs port 8080 for internet access
-- 🔧 **Easy to use on phones** - Install via browser after first visit OpenGloves
-- 🎨 **Modern Dark Theme** - Beautiful, easy-on-the-eyes interface
-- 📱 **Mobile-Friendly** - Responsive design works on all devices
+- 🎨 **Modern Dark Theme** - Beautiful, easy-on-the-eyes interface with theme switching
+- 📱 **Mobile-Optimized** - Responsive design with touch-friendly controls
 - 🔒 **Secure** - HTTPS support with automatic certificate generation
 - ⚡ **Real-time** - WebSocket-based live chat updates
 - 📎 **File Upload** - Send images and documents to your AI
@@ -37,6 +43,11 @@ npm start
 
 Visit `http://localhost:8080` in your browser!
 
+### 🔐 Access Setup
+1. Enter the access password: `changeme123` (default)
+2. Click **Connect** to access your OpenClaw gateway
+3. Start chatting or use slash commands like `/help`
+
 ## 📝 Configuration
 
 Edit `config.json` to customize your setup:
@@ -59,6 +70,11 @@ Edit `config.json` to customize your setup:
     "url": "ws://localhost:18789",
     "token": "your-gateway-token-here",
     "autoDetectUrl": true
+  },
+  "ui": {
+    "title": "OpenGloves",
+    "sessionKey": "main",
+    "accessPassword": "changeme123"
   }
 }
 ```
@@ -71,6 +87,37 @@ Your OpenClaw gateway token can be found in:
 ```
 
 Look for `gateway.auth.token`.
+
+## ⚡ Using Slash Commands
+
+OpenGloves supports convenient slash commands:
+
+- `/help` - Show all available commands
+- `/clear` - Clear chat history  
+- `/status` - Show connection status and statistics
+- `/export [format]` - Export chat (json/md/txt)
+- `/theme [mode]` - Switch theme (dark/light/auto)
+- `/reconnect` - Reconnect to gateway
+
+Example: Type `/export md` to download your chat as Markdown.
+
+## 📱 Mobile & PWA Usage
+
+### Mobile Interface
+- On mobile devices, OpenGloves shows a compact interface
+- Password and connection controls are grouped for easy access
+- Touch-optimized buttons and spacing
+
+### Install as App (PWA)
+1. Open OpenGloves in a supported browser (Chrome, Edge, Safari)
+2. Look for "📱 Install as App" button at the bottom
+3. Click to install as a native app on your device
+4. Access from your home screen/app drawer
+
+### Mobile Tips
+- Swipe gestures work for navigation
+- File upload via camera or gallery
+- Offline capability when installed as PWA
 
 ## 🔐 HTTPS Setup
 
