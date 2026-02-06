@@ -22,12 +22,35 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 
 ## 🚀 Quick Start
 
+### Remote Installation (Recommended)
+
+One-command installation with automatic configuration:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/install-opengloves.sh | bash
+```
+
+**What this does:**
+- ✅ Automatically downloads OpenGloves
+- ✅ Detects and configures OpenClaw gateway (if available)
+- ✅ Generates secure access password
+- ✅ Sets up PWA manifest
+- ✅ Configures WebSocket proxy
+
+**After installation:**
+```bash
+cd ~/opengloves
+npm start
+```
+
+Then visit `http://localhost:8080` and enter the access password shown during installation!
+
 ### Prerequisites
 
 - **Node.js** 18+ (check with `node --version`)
 - **OpenClaw** gateway running on the same machine or network
 
-### Installation
+### Manual Installation
 
 ```bash
 # Clone or download the repository

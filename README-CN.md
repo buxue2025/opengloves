@@ -22,12 +22,35 @@
 
 ## 🚀 快速开始
 
+### 远程安装（推荐）
+
+一键安装，自动配置：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/install-opengloves.sh | bash
+```
+
+**安装脚本会自动完成：**
+- ✅ 自动下载 OpenGloves
+- ✅ 检测并配置 OpenClaw 网关（如果可用）
+- ✅ 生成安全的访问密码
+- ✅ 设置 PWA 应用清单
+- ✅ 配置 WebSocket 代理
+
+**安装完成后：**
+```bash
+cd ~/opengloves
+npm start
+```
+
+然后访问 `http://localhost:8080`，输入安装时显示的访问密码即可！
+
 ### 环境要求
 
 - **Node.js** 18+（使用 `node --version` 检查）
 - 运行在同一台机器或网络中的 **OpenClaw** 网关
 
-### 安装方法
+### 手动安装
 
 ```bash
 # 克隆或下载仓库
