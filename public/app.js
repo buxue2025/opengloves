@@ -296,6 +296,9 @@ class ChatUI {
             soundEnabled: true,
         };
 
+        // Initialize command system
+        this.commands = this.initializeCommands();
+
         this.init();
     }
 
@@ -731,7 +734,27 @@ class ChatUI {
         const input = this.elements.messageInput;
         const message = input.value.trim();
 
-        if ((!message && this.pendingFiles.length === 0) || !this.gatewayClient || !this.gatewayClient.authenticated) {
+        if (!message && this.pendingFiles.length === 0) {
+            return;
+        }
+
+        // Check if this is a command
+        if (message.startsWith('/') && this.pendingFiles.length === 0) {
+            const commandData = this.parseCommand(message);
+            if (commandData) {
+                // Clear input first
+                input.value = '';
+                input.style.height = 'auto';
+                
+                // Execute command
+                await this.executeCommand(commandData);
+                return;
+            }
+        }
+
+        // Regular message - need gateway connection
+        if (!this.gatewayClient || !this.gatewayClient.authenticated) {
+            this.showToast('Please connect to the gateway first', 'error');
             return;
         }
 
@@ -982,6 +1005,288 @@ class ChatUI {
             } catch (error) {
                 console.error('ServiceWorker registration failed:', error);
             }
+        }
+    }
+
+    // Command System Implementation
+    initializeCommands() {
+        return {
+            'help': {
+                description: 'Show available commands',
+                usage: '/help [command]',
+                handler: (args) => this.cmdHelp(args)
+            },
+            'clear': {
+                description: 'Clear chat history',
+                usage: '/clear',
+                handler: (args) => this.cmdClear(args)
+            },
+            'status': {
+                description: 'Show connection status and statistics',
+                usage: '/status',
+                handler: (args) => this.cmdStatus(args)
+            },
+            'export': {
+                description: 'Export chat history',
+                usage: '/export [json|md|txt]',
+                handler: (args) => this.cmdExport(args)
+            },
+            'theme': {
+                description: 'Switch theme',
+                usage: '/theme [dark|light|auto]',
+                handler: (args) => this.cmdTheme(args)
+            },
+            'reconnect': {
+                description: 'Reconnect to gateway',
+                usage: '/reconnect',
+                handler: (args) => this.cmdReconnect(args)
+            }
+        };
+    }
+
+    parseCommand(input) {
+        // Remove leading slash and split by spaces
+        const trimmed = input.trim();
+        if (!trimmed.startsWith('/')) {
+            return null;
+        }
+
+        const parts = trimmed.slice(1).split(/\s+/);
+        const command = parts[0].toLowerCase();
+        const args = parts.slice(1);
+
+        return {
+            command,
+            args,
+            raw: input
+        };
+    }
+
+    async executeCommand(commandData) {
+        const { command, args } = commandData;
+        
+        if (!this.commands[command]) {
+            this.addMessage({
+                role: 'system',
+                content: [{ type: 'text', text: `❌ Unknown command: /${command}. Type /help to see available commands.` }],
+                timestamp: Date.now()
+            });
+            return true; // Command was processed (even if invalid)
+        }
+
+        try {
+            await this.commands[command].handler(args);
+        } catch (error) {
+            console.error(`Error executing command /${command}:`, error);
+            this.addMessage({
+                role: 'system',
+                content: [{ type: 'text', text: `❌ Error executing command /${command}: ${error.message}` }],
+                timestamp: Date.now()
+            });
+        }
+
+        return true; // Command was processed
+    }
+
+    // Command handlers
+    cmdHelp(args) {
+        const commandName = args[0]?.toLowerCase();
+        
+        if (commandName && this.commands[commandName]) {
+            // Show specific command help
+            const cmd = this.commands[commandName];
+            const helpText = `**/${commandName}** - ${cmd.description}\n\n**Usage:** ${cmd.usage}`;
+            this.addMessage({
+                role: 'system',
+                content: [{ type: 'text', text: helpText }],
+                timestamp: Date.now()
+            });
+        } else {
+            // Show all commands
+            const helpText = [
+                '**Available Commands:**',
+                '',
+                ...Object.entries(this.commands).map(([name, cmd]) => 
+                    `**/${name}** - ${cmd.description}`
+                ),
+                '',
+                'Type `/help <command>` for detailed usage information.'
+            ].join('\n');
+            
+            this.addMessage({
+                role: 'system',
+                content: [{ type: 'text', text: helpText }],
+                timestamp: Date.now()
+            });
+        }
+    }
+
+    cmdClear(args) {
+        // Clear all messages except welcome message
+        this.messages = [];
+        this.elements.messages.innerHTML = `
+            <div class="message welcome">
+                <div class="message-content">Welcome! Connect to your OpenClaw gateway to start chatting.</div>
+            </div>
+        `;
+        
+        this.addMessage({
+            role: 'system',
+            content: [{ type: 'text', text: '✅ Chat history cleared.' }],
+            timestamp: Date.now()
+        });
+    }
+
+    cmdStatus(args) {
+        const status = this.gatewayClient ? (this.gatewayClient.connected ? 'Connected' : 'Disconnected') : 'No gateway client';
+        const authenticated = this.gatewayClient?.authenticated ? 'Yes' : 'No';
+        const messageCount = this.messages.length;
+        const gatewayUrl = this.settings.gatewayUrl || 'Not set';
+        const sessionKey = this.settings.sessionKey || 'Not set';
+        
+        const statusText = [
+            '**Connection Status**',
+            `• Gateway: ${status}`,
+            `• Authenticated: ${authenticated}`,
+            `• Gateway URL: ${gatewayUrl}`,
+            `• Session Key: ${sessionKey}`,
+            `• Messages: ${messageCount}`,
+            `• Auto-scroll: ${this.settings.autoScroll ? 'On' : 'Off'}`,
+            `• Sound: ${this.settings.soundEnabled ? 'On' : 'Off'}`
+        ].join('\n');
+
+        this.addMessage({
+            role: 'system',
+            content: [{ type: 'text', text: statusText }],
+            timestamp: Date.now()
+        });
+    }
+
+    cmdExport(args) {
+        const format = args[0]?.toLowerCase() || 'json';
+        
+        if (!['json', 'md', 'txt'].includes(format)) {
+            this.addMessage({
+                role: 'system',
+                content: [{ type: 'text', text: '❌ Invalid format. Use: json, md, or txt' }],
+                timestamp: Date.now()
+            });
+            return;
+        }
+
+        let content = '';
+        let filename = '';
+        let mimeType = '';
+
+        switch (format) {
+            case 'json':
+                content = JSON.stringify(this.messages, null, 2);
+                filename = `chat-export-${new Date().toISOString().split('T')[0]}.json`;
+                mimeType = 'application/json';
+                break;
+            
+            case 'md':
+                content = this.messages.map(msg => {
+                    const timestamp = new Date(msg.timestamp).toLocaleString();
+                    const role = msg.role === 'user' ? '👤 User' : 
+                                msg.role === 'assistant' ? '🤖 Assistant' : '⚙️ System';
+                    let text = '';
+                    
+                    if (Array.isArray(msg.content)) {
+                        text = msg.content.map(block => block.text || '(file)').join('\n');
+                    } else {
+                        text = msg.content || '';
+                    }
+                    
+                    return `## ${role}\n**${timestamp}**\n\n${text}\n\n---\n`;
+                }).join('\n');
+                filename = `chat-export-${new Date().toISOString().split('T')[0]}.md`;
+                mimeType = 'text/markdown';
+                break;
+            
+            case 'txt':
+                content = this.messages.map(msg => {
+                    const timestamp = new Date(msg.timestamp).toLocaleString();
+                    const role = msg.role.toUpperCase();
+                    let text = '';
+                    
+                    if (Array.isArray(msg.content)) {
+                        text = msg.content.map(block => block.text || '(file)').join('\n');
+                    } else {
+                        text = msg.content || '';
+                    }
+                    
+                    return `[${timestamp}] ${role}: ${text}`;
+                }).join('\n\n');
+                filename = `chat-export-${new Date().toISOString().split('T')[0]}.txt`;
+                mimeType = 'text/plain';
+                break;
+        }
+
+        // Create download link
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        this.addMessage({
+            role: 'system',
+            content: [{ type: 'text', text: `✅ Chat history exported as ${filename}` }],
+            timestamp: Date.now()
+        });
+    }
+
+    cmdTheme(args) {
+        const theme = args[0]?.toLowerCase();
+        
+        if (!theme || !['dark', 'light', 'auto'].includes(theme)) {
+            this.addMessage({
+                role: 'system',
+                content: [{ type: 'text', text: '❌ Invalid theme. Use: dark, light, or auto' }],
+                timestamp: Date.now()
+            });
+            return;
+        }
+
+        // Apply theme to document
+        document.documentElement.setAttribute('data-theme', theme);
+        
+        // Save to settings
+        this.settings.theme = theme;
+        this.saveSettings();
+
+        this.addMessage({
+            role: 'system',
+            content: [{ type: 'text', text: `✅ Theme switched to ${theme}` }],
+            timestamp: Date.now()
+        });
+    }
+
+    cmdReconnect(args) {
+        if (this.gatewayClient) {
+            this.addMessage({
+                role: 'system',
+                content: [{ type: 'text', text: '🔄 Reconnecting to gateway...' }],
+                timestamp: Date.now()
+            });
+            
+            this.disconnect();
+            
+            // Wait a moment then reconnect
+            setTimeout(() => {
+                this.connect();
+            }, 1000);
+        } else {
+            this.addMessage({
+                role: 'system',
+                content: [{ type: 'text', text: '❌ No gateway connection to reconnect. Use the Connect button first.' }],
+                timestamp: Date.now()
+            });
         }
     }
 }
