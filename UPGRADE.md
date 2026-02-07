@@ -40,7 +40,9 @@ bash <(curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/up
 - ✅ 保存现有的 Gateway Token
 - ✅ 拉取最新代码
 - ✅ 自动更新配置文件
+- ✅ 切换到 HTTPS 模式（端口 8443）
 - ✅ 生成安全访问密码（或保留现有密码）
+- ✅ 配置 OpenClaw Gateway allowedOrigins
 - ✅ 显示升级后的使用说明
 
 ---
@@ -73,7 +75,10 @@ git pull origin main
 ```
 
 ```bash
-# 5. 重启服务
+# 5. 配置 OpenClaw Gateway allowedOrigins
+bash scripts/configure-gateway.sh
+
+# 6. 重启服务
 npm start
 ```
 
@@ -134,6 +139,56 @@ cd ~/.opengloves
 3. **移动端界面**
    - 移动设备会显示专门优化的界面
    - 侧边栏在移动端自动隐藏
+
+4. **HTTPS 模式和端口变更**
+   - 默认启用 HTTPS，端口 8443
+   - HTTP 默认禁用（可在配置中启用）
+   - 访问地址从 `http://localhost:8080` 改为 `https://localhost:8443`
+
+5. **OpenClaw Gateway 配置**
+   - ⚠️ **重要**：必须更新 Gateway 的 `allowedOrigins`
+   - 需要添加 `https://` 协议和 `8443` 端口
+   - 升级脚本会自动配置，或手动运行 `bash scripts/configure-gateway.sh`
+
+---
+
+## ⚙️ OpenClaw Gateway 配置
+
+### 为什么需要配置？
+
+v0.02 切换到 HTTPS 后，OpenClaw Gateway 需要允许来自 HTTPS 的连接。
+
+### 自动配置（推荐）
+
+升级脚本会自动配置，如果需要手动运行：
+
+```bash
+cd ~/.opengloves
+bash scripts/configure-gateway.sh
+```
+
+### 手动配置
+
+编辑 `~/.openclaw/openclaw.json`：
+
+```json
+{
+  "gateway": {
+    "controlUi": {
+      "allowedOrigins": [
+        "https://localhost:8443",
+        "https://127.0.0.1:8443",
+        "https://YOUR_LAN_IP:8443"
+      ]
+    }
+  }
+}
+```
+
+**重启 Gateway：**
+```bash
+systemctl --user restart openclaw-gateway
+```
 
 ---
 
@@ -227,6 +282,37 @@ cd ~/.opengloves
 
 ### Q: 旧版本的聊天记录还在吗？
 **A:** 聊天记录不会自动保存。v0.02 可以使用 `/export` 命令导出聊天记录。
+
+### Q: 局域网访问显示 "origin not allowed" 错误？
+**A:** 这是因为 OpenClaw Gateway 的 allowedOrigins 需要更新。
+
+**快速解决：**
+```bash
+cd ~/.opengloves
+bash scripts/configure-gateway.sh
+```
+
+**或者升级脚本已自动配置，只需重启 Gateway：**
+```bash
+systemctl --user restart openclaw-gateway
+```
+
+**手动配置：**
+编辑 `~/.openclaw/openclaw.json`，将 allowedOrigins 从：
+```json
+["http://localhost:8080"]  // 旧的
+```
+改为：
+```json
+["https://localhost:8443", "https://YOUR_LAN_IP:8443"]  // 新的
+```
+
+### Q: 证书警告怎么办？
+**A:** 这是正常的！v0.02 使用自签名证书。点击"高级" → "继续访问"即可。
+
+如需去除警告，可以：
+1. 使用受信任的 CA 证书
+2. 将自签名证书添加到系统信任列表
 
 ---
 

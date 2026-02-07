@@ -190,6 +190,81 @@ if [ -f "package-lock.json" ]; then
     echo ""
 fi
 
+# Configure OpenClaw Gateway allowedOrigins
+echo "🔧 配置 OpenClaw Gateway..."
+if [ -f "$HOME/.openclaw/openclaw.json" ]; then
+    # Get local IPs
+    LOCAL_IPS=$(hostname -I 2>/dev/null | tr ' ' '\n' | grep -v '^127\.' | head -3)
+    
+    python3 << 'PYEOF'
+import json
+import os
+import subprocess
+
+openclaw_config = os.path.expanduser('~/.openclaw/openclaw.json')
+
+try:
+    with open(openclaw_config, 'r') as f:
+        config = json.load(f)
+    
+    # Get local IPs
+    try:
+        result = subprocess.run(['hostname', '-I'], capture_output=True, text=True)
+        local_ips = [ip.strip() for ip in result.stdout.split() if ip.strip() and not ip.startswith('127.')]
+    except:
+        local_ips = []
+    
+    # Build origins list with HTTPS and port 8443
+    origins = [
+        "https://localhost:8443",
+        "https://127.0.0.1:8443"
+    ]
+    
+    for ip in local_ips[:3]:  # Limit to first 3 IPs
+        origins.append(f"https://{ip}:8443")
+    
+    # Get current origins
+    current_origins = config.get('gateway', {}).get('controlUi', {}).get('allowedOrigins', [])
+    
+    # Merge origins (keep existing, add new)
+    all_origins = list(set(current_origins + origins))
+    
+    # Update config
+    if 'gateway' not in config:
+        config['gateway'] = {}
+    if 'controlUi' not in config['gateway']:
+        config['gateway']['controlUi'] = {}
+    config['gateway']['controlUi']['allowedOrigins'] = all_origins
+    
+    # Save
+    with open(openclaw_config, 'w') as f:
+        json.dump(config, f, indent=4)
+    
+    print("✅ Gateway allowedOrigins 已更新")
+    
+    # Check if gateway restart is needed
+    new_origins = [o for o in origins if o not in current_origins]
+    if new_origins:
+        print("   新增 origins:")
+        for origin in new_origins:
+            print(f"      - {origin}")
+        print("")
+        print("⚠️  需要重启 OpenClaw Gateway:")
+        print("   systemctl --user restart openclaw-gateway")
+    else:
+        print("   所有必需的 origins 已存在")
+    
+except Exception as e:
+    print(f"⚠️  无法自动配置 Gateway: {e}")
+    print("   请运行: bash scripts/configure-gateway.sh")
+PYEOF
+    echo ""
+else
+    echo "⚠️  未找到 OpenClaw 配置，跳过 Gateway 配置"
+    echo "   如需配置，请运行: bash scripts/configure-gateway.sh"
+    echo ""
+fi
+
 # Migrate to new location if requested
 if [ "$MIGRATE_LOCATION" = true ]; then
     echo "🚚 迁移到新位置..."
