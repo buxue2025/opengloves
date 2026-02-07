@@ -7,7 +7,7 @@
     },
     "https": {
       "enabled": true,
-      "port": 18948,
+      "port": 8443,
       "autoGenerateCert": true,
       "certPath": "./certs/cert.pem",
       "keyPath": "./certs/key.pem"

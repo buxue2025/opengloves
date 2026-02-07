@@ -11,7 +11,7 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 - 📲 **PWA Support** - Install as native app on mobile and desktop
 
 ### Core Features
-- 🌐 **Single Port Access** - Built-in WebSocket proxy, only needs port 18948 for internet access
+- 🌐 **Single Port Access** - Built-in WebSocket proxy, only needs port 8443 for internet access
 - 🎨 **Modern Dark Theme** - Beautiful, easy-on-the-eyes interface with theme switching
 - 📱 **Mobile-Optimized** - Responsive design with touch-friendly controls
 - 🔒 **Secure** - HTTPS support with automatic certificate generation
@@ -50,7 +50,7 @@ cd ~/.opengloves
 npm start
 ```
 
-Then visit `https://localhost:18948` and enter the access password shown during installation!
+Then visit `https://localhost:8443` and enter the access password shown during installation!
 
 ### Prerequisites
 
@@ -71,7 +71,7 @@ cp config.example.json config.json
 npm start
 ```
 
-Visit `https://localhost:18948` in your browser!
+Visit `https://localhost:8443` in your browser!
 
 **Note:** You'll see a security warning because of the self-signed certificate. This is normal - click "Advanced" → "Proceed to localhost" to continue.
 
@@ -94,7 +94,7 @@ Edit `config.json` to customize your setup:
     },
     "https": {
       "enabled": true,
-      "port": 18948,
+      "port": 8443,
       "autoGenerateCert": true
     }
   },
@@ -242,7 +242,7 @@ Access from another device on your local network is automatic! Just visit your s
 
 ### Can't Access from Other Devices
 
-1. Check firewall allows port 18948
+1. Check firewall allows port 8443
 2. Verify `server.host` is `"0.0.0.0"` (not `"localhost"`)
 3. Check gateway `allowedOrigins` includes your server IP
 

@@ -11,7 +11,7 @@
 - 📲 **PWA 支持** - 可安装为手机和桌面原生应用
 
 ### 核心功能
-- 🌐 **单端口访问** - 内置 WebSocket 代理，公网访问仅需开放 18948 端口
+- 🌐 **单端口访问** - 内置 WebSocket 代理，公网访问仅需开放 8443 端口
 - 🎨 **现代化主题** - 美观护眼界面，支持主题切换
 - 📱 **移动端优化** - 响应式设计，触控友好的控件
 - 🔒 **安全可靠** - 支持 HTTPS，自动生成证书
@@ -50,7 +50,7 @@ cd ~/.opengloves
 npm start
 ```
 
-然后访问 `https://localhost:18948`，输入安装时显示的访问密码即可！
+然后访问 `https://localhost:8443`，输入安装时显示的访问密码即可！
 
 ### 环境要求
 
@@ -71,7 +71,7 @@ cp config.example.json config.json
 npm start
 ```
 
-在浏览器中访问 `https://localhost:18948`！
+在浏览器中访问 `https://localhost:8443`！
 
 **注意：** 由于使用自签名证书，浏览器会显示安全警告。这是正常的 - 点击"高级" → "继续访问"即可。
 
@@ -91,8 +91,8 @@ npm start
   "gateway": {
     "controlUi": {
       "allowedOrigins": [
-        "https://localhost:18948",      // 本机访问
-        "https://127.0.0.1:18948"       // 本机IP访问
+        "https://localhost:8443",      // 本机访问
+        "https://127.0.0.1:8443"       // 本机IP访问
       ]
     }
   }
@@ -116,11 +116,11 @@ openclaw gateway restart
     "host": "0.0.0.0",
     "http": {
       "enabled": true,
-      "port": 18948
+      "port": 8443
     },
     "https": {
       "enabled": false,
-      "port": 18948,
+      "port": 8443,
       "autoGenerateCert": true
     }
   },
@@ -268,7 +268,7 @@ npm start
 
 ### 其他设备无法访问
 
-1. 检查防火墙是否允许端口 18948
+1. 检查防火墙是否允许端口 8443
 2. 验证 `server.host` 是 `"0.0.0.0"`（不是 `"localhost"`）
 3. 检查网关的 `allowedOrigins` 包含你的服务器 IP
 
