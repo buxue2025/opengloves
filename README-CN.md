@@ -143,6 +143,45 @@ openclaw gateway restart
 
 查找 `gateway.auth.token`。
 
+## 🔒 安全特性
+
+### 密码保护（v0.02）
+
+OpenGloves v0.02 实现了安全的密码认证：
+
+- 🔐 **挑战-响应认证**
+  - 服务器为每次登录生成随机 nonce
+  - 客户端使用 SHA-256 哈希密码和 nonce
+  - 密码永远不会明文传输
+
+- 🛡️ **防御攻击**
+  - 防止密码嗅探
+  - 缓解重放攻击
+  - 防御彩虹表攻击
+
+### ⚠️ HTTPS 要求
+
+**公网/互联网访问必须使用 HTTPS：**
+
+```json
+{
+  "server": {
+    "https": {
+      "enabled": true,
+      "autoGenerateCert": true
+    }
+  }
+}
+```
+
+**为什么 HTTPS 至关重要：**
+- 即使密码已哈希，会话数据仍需加密
+- 保护聊天内容不被窃听
+- 防止中间人攻击
+- PWA 安装需要安全连接
+
+**警告：** 从非本地地址通过 HTTP 访问时，OpenGloves 会显示警告。
+
 ## ⚡ 快捷命令使用
 
 OpenGloves 支持便捷的快捷命令：

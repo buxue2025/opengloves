@@ -11,6 +11,7 @@ import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import crypto from 'crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
@@ -189,6 +190,19 @@ function createApiHandler(req, res) {
     return true;
   }
   
+  // Get authentication challenge (nonce)
+  if (req.url === '/api/auth/challenge' && req.method === 'GET') {
+    const nonce = crypto.randomBytes(32).toString('hex');
+    
+    res.writeHead(200, { 
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-store'
+    });
+    res.end(JSON.stringify({ nonce }));
+    return true;
+  }
+  
+  // Verify authentication with hashed password
   if (req.url === '/api/auth' && req.method === 'POST') {
     let body = '';
     req.on('data', chunk => {
@@ -197,8 +211,21 @@ function createApiHandler(req, res) {
     
     req.on('end', () => {
       try {
-        const { password } = JSON.parse(body);
-        const isValid = password === config.ui.accessPassword;
+        const { hash, nonce } = JSON.parse(body);
+        
+        if (!hash || !nonce) {
+          res.writeHead(400, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: false, message: 'Invalid request format' }));
+          return;
+        }
+        
+        // Calculate expected hash: SHA-256(password + nonce)
+        const expectedHash = crypto
+          .createHash('sha256')
+          .update(config.ui.accessPassword + nonce)
+          .digest('hex');
+        
+        const isValid = hash === expectedHash;
         
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ 

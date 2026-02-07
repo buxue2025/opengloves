@@ -117,6 +117,45 @@ Your OpenClaw gateway token can be found in:
 
 Look for `gateway.auth.token`.
 
+## 🔒 Security Features
+
+### Password Protection (v0.02)
+
+OpenGloves v0.02 implements secure password authentication:
+
+- 🔐 **Challenge-Response Authentication**
+  - Server generates random nonce for each login
+  - Client hashes password with nonce using SHA-256
+  - Password never transmitted in plain text
+
+- 🛡️ **Defense Against Attacks**
+  - Prevents password sniffing
+  - Mitigates replay attacks
+  - Protects against rainbow table attacks
+
+### ⚠️ HTTPS Requirement
+
+**For public/internet access, HTTPS is mandatory:**
+
+```json
+{
+  "server": {
+    "https": {
+      "enabled": true,
+      "autoGenerateCert": true
+    }
+  }
+}
+```
+
+**Why HTTPS is essential:**
+- Even with password hashing, session data needs encryption
+- Protects chat content from eavesdropping
+- Prevents man-in-the-middle attacks
+- Required for secure PWA installation
+
+**Warning:** OpenGloves will display a warning if accessed over HTTP from non-localhost addresses.
+
 ## ⚡ Using Slash Commands
 
 OpenGloves supports convenient slash commands:

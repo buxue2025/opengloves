@@ -308,6 +308,29 @@ class ChatUI {
         this.bindEvents();
         this.initServiceWorker();
         this.initPWA();
+        this.checkHTTPS();
+    }
+    
+    checkHTTPS() {
+        // Warn if not using HTTPS in production
+        const isLocalhost = window.location.hostname === 'localhost' || 
+                           window.location.hostname === '127.0.0.1';
+        const isHTTPS = window.location.protocol === 'https:';
+        
+        if (!isLocalhost && !isHTTPS) {
+            console.warn('⚠️ Warning: Not using HTTPS! Password transmission may not be secure.');
+            this.showToast('⚠️ Warning: Not using HTTPS. Please enable HTTPS for secure access.', 'warning');
+        }
+    }
+    
+    async hashPassword(password, nonce) {
+        // Use Web Crypto API to hash password with nonce
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password + nonce);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return hashHex;
     }
 
     async loadServerConfig() {
@@ -597,22 +620,34 @@ class ChatUI {
             return;
         }
 
-        // Authenticate with server
+        // Authenticate with server using challenge-response
         try {
-            const response = await fetch('/api/auth', {
+            // Step 1: Get challenge (nonce) from server
+            const challengeResponse = await fetch('/api/auth/challenge');
+            if (!challengeResponse.ok) {
+                throw new Error('Failed to get authentication challenge');
+            }
+            const { nonce } = await challengeResponse.json();
+            
+            // Step 2: Hash password with nonce using SHA-256
+            const hash = await this.hashPassword(accessPassword, nonce);
+            
+            // Step 3: Send hash to server for verification
+            const authResponse = await fetch('/api/auth', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ password: accessPassword })
+                body: JSON.stringify({ hash, nonce })
             });
             
-            const result = await response.json();
+            const result = await authResponse.json();
             if (!result.success) {
                 this.showToast(result.message || 'Invalid access password', 'error');
                 return;
             }
         } catch (error) {
+            console.error('Authentication error:', error);
             this.showToast('Authentication failed. Please try again.', 'error');
             return;
         }
