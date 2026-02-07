@@ -198,12 +198,14 @@ EOF
     echo ""
 fi
 
-# Install any new dependencies (if needed)
-if [ -f "package-lock.json" ]; then
-    echo "📦 检查依赖..."
-    npm install --silent 2>/dev/null || true
-    echo ""
+# Install dependencies (required after upgrade)
+echo "📦 安装依赖..."
+if npm install; then
+    echo "✅ 依赖安装完成"
+else
+    echo "⚠️  依赖安装失败，请手动运行: npm install"
 fi
+echo ""
 
 # Configure OpenClaw Gateway allowedOrigins
 echo "🔧 配置 OpenClaw Gateway..."

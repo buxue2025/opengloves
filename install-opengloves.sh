@@ -63,6 +63,17 @@ fi
 
 git clone https://github.com/buxue2025/opengloves.git "$INSTALL_DIR"
 cd "$INSTALL_DIR"
+
+# Install dependencies
+echo "📦 安装依赖..."
+if npm install; then
+    echo "✅ 依赖安装完成"
+else
+    echo "❌ 依赖安装失败"
+    exit 1
+fi
+echo ""
+
 # 复制配置
 echo "⚙️  配置中..."
 cp config.example.json config.json
