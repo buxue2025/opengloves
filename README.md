@@ -22,6 +22,8 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 
 ## 🚀 Quick Start
 
+> **Upgrading from v0.01?** See [UPGRADE.md](./UPGRADE.md) for upgrade instructions.
+
 ### Remote Installation (Recommended)
 
 One-command installation with automatic configuration:
