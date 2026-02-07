@@ -1,5 +1,5 @@
 // Service Worker for OpenGloves Standalone Chat
-const CACHE_NAME = 'opengloves-v1.0.0';
+const CACHE_NAME = 'opengloves-v0.02';
 const urlsToCache = [
   './',
   './index.html',

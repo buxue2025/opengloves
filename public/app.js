@@ -293,6 +293,7 @@ class ChatUI {
             sessionKey: 'main',
             autoScroll: true,
             soundEnabled: true,
+            notificationsEnabled: false,         // System notifications
         };
 
         // Initialize command system
@@ -320,6 +321,85 @@ class ChatUI {
         if (!isLocalhost && !isHTTPS) {
             console.warn('⚠️ Warning: Not using HTTPS! Password transmission may not be secure.');
             this.showToast('⚠️ Warning: Not using HTTPS. Please enable HTTPS for secure access.', 'warning');
+        }
+    }
+
+    async toggleNotifications() {
+        const enabled = this.elements.notificationsEnabled.checked;
+        
+        if (enabled) {
+            // Request notification permission
+            if ('Notification' in window) {
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    this.settings.notificationsEnabled = true;
+                    this.saveSettings();
+                    this.showToast('System notifications enabled', 'success');
+                    
+                    // Show a test notification
+                    this.showSystemNotification('OpenGloves', 'Notifications are now enabled!');
+                } else {
+                    this.elements.notificationsEnabled.checked = false;
+                    this.settings.notificationsEnabled = false;
+                    this.showToast('Notification permission denied', 'error');
+                }
+            } else {
+                this.elements.notificationsEnabled.checked = false;
+                this.showToast('Notifications not supported in this browser', 'error');
+            }
+        } else {
+            this.settings.notificationsEnabled = false;
+            this.saveSettings();
+            this.showToast('System notifications disabled', 'info');
+        }
+    }
+
+    extractMessageText(message) {
+        // Extract text from message content
+        if (Array.isArray(message.content)) {
+            return message.content
+                .filter(block => block.type === 'text' && block.text)
+                .map(block => block.text)
+                .join('\n');
+        } else if (typeof message.content === 'string') {
+            return message.content;
+        }
+        return '';
+    }
+
+    showSystemNotification(title, body, icon = '🧤') {
+        // Check if notifications are enabled and permission granted
+        if (!this.settings.notificationsEnabled || !('Notification' in window)) {
+            return;
+        }
+        
+        if (Notification.permission !== 'granted') {
+            return;
+        }
+        
+        // Don't show notification if page is visible
+        if (!document.hidden) {
+            return;
+        }
+        
+        try {
+            const notification = new Notification(title, {
+                body: body,
+                icon: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${icon}</text></svg>`,
+                badge: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧤</text></svg>`,
+                tag: 'opengloves-message',
+                renotify: true,
+                requireInteraction: false,
+                silent: false,
+            });
+            
+            notification.onclick = () => {
+                window.focus();
+                notification.close();
+            };
+        } catch (error) {
+            console.error('Failed to show notification:', error);
         }
     }
     
@@ -412,6 +492,7 @@ class ChatUI {
             // Other elements
             autoScroll: document.getElementById('autoScroll'),
             soundEnabled: document.getElementById('soundEnabled'),
+            notificationsEnabled: document.getElementById('notificationsEnabled'),
             toast: document.getElementById('toast'),
             fileButton: document.getElementById('fileButton'),
             fileInput: document.getElementById('fileInput'),
@@ -426,6 +507,7 @@ class ChatUI {
         this.elements.mobileSessionKey.value = this.settings.sessionKey;
         this.elements.autoScroll.checked = this.settings.autoScroll;
         this.elements.soundEnabled.checked = this.settings.soundEnabled;
+        this.elements.notificationsEnabled.checked = this.settings.notificationsEnabled;
     }
 
     bindEvents() {
@@ -459,6 +541,7 @@ class ChatUI {
         this.elements.mobileSessionKey.addEventListener('change', () => this.updateMobileSetting('sessionKey'));
         this.elements.autoScroll.addEventListener('change', () => this.updateSetting('autoScroll'));
         this.elements.soundEnabled.addEventListener('change', () => this.updateSetting('soundEnabled'));
+        this.elements.notificationsEnabled.addEventListener('change', () => this.toggleNotifications());
     }
 
     // File handling methods
@@ -596,6 +679,8 @@ class ChatUI {
             this.settings.autoScroll = this.elements.autoScroll.checked;
         } else if (key === 'soundEnabled') {
             this.settings.soundEnabled = this.elements.soundEnabled.checked;
+        } else if (key === 'notificationsEnabled') {
+            this.settings.notificationsEnabled = this.elements.notificationsEnabled.checked;
         }
         this.saveSettings();
     }
@@ -942,6 +1027,13 @@ class ChatUI {
         // Add final message
         if (payload.message) {
             this.addMessage(payload.message);
+            
+            // Show system notification if enabled
+            if (this.settings.notificationsEnabled && payload.message.role === 'assistant') {
+                const messageText = this.extractMessageText(payload.message);
+                const preview = messageText.substring(0, 100) + (messageText.length > 100 ? '...' : '');
+                this.showSystemNotification('OpenGloves - New Message', preview, '🤖');
+            }
         }
 
         // Play notification sound if enabled
