@@ -45,12 +45,22 @@ curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/install-o
 - ✅ 配置 WebSocket 代理
 
 **安装完成后：**
+
+服务自动启动！访问 `https://localhost:8443`，输入安装时显示的访问密码即可！
+
+**服务管理命令：**
+```bash
+systemctl --user status opengloves  # 查看状态
+systemctl --user restart opengloves # 重启服务
+systemctl --user stop opengloves    # 停止服务
+journalctl --user -u opengloves -f  # 查看日志
+```
+
+**或手动运行：**
 ```bash
 cd ~/.opengloves
 npm start
 ```
-
-然后访问 `https://localhost:8443`，输入安装时显示的访问密码即可！
 
 ### OpenClaw Gateway 配置
 

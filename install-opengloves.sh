@@ -140,6 +140,27 @@ EOF
     ACCESS_PASSWORD="$DEFAULT_PASSWORD"
 fi
 echo ""
+
+# Install systemd service
+echo "📦 安装 systemd 服务..."
+SYSTEMD_DIR="$HOME/.config/systemd/user"
+mkdir -p "$SYSTEMD_DIR"
+
+# Copy service file
+cp opengloves.service "$SYSTEMD_DIR/opengloves.service"
+
+# Enable and start service
+systemctl --user daemon-reload
+systemctl --user enable opengloves.service
+systemctl --user start opengloves.service
+
+if systemctl --user is-active --quiet opengloves.service; then
+    echo "✅ OpenGloves 服务已启动"
+else
+    echo "⚠️  服务启动失败，请使用手动启动: npm start"
+fi
+
+echo ""
 echo "🎉 OpenGloves v0.02 安装完成！"
 echo ""
 echo "📍 安装位置: $INSTALL_DIR"
@@ -150,9 +171,15 @@ echo "  🔐 挑战-响应密码认证（SHA-256哈希）"
 echo "  📱 移动端优化界面"
 echo "  📲 PWA 应用支持"
 echo ""
-echo "启动命令:"
-echo "  cd ~/.opengloves"
-echo "  npm start"
+echo "🔧 服务管理命令:"
+echo "  启动: systemctl --user start opengloves"
+echo "  停止: systemctl --user stop opengloves"
+echo "  重启: systemctl --user restart opengloves"
+echo "  状态: systemctl --user status opengloves"
+echo "  日志: journalctl --user -u opengloves -f"
+echo ""
+echo "或手动启动:"
+echo "  cd ~/.opengloves && npm start"
 echo ""
 echo "访问: https://localhost:8443"
 echo "⚠️  首次访问会看到安全警告（自签名证书），点击'继续访问'即可"

@@ -45,12 +45,22 @@ curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/install-o
 - ✅ Configures WebSocket proxy
 
 **After installation:**
+
+The service starts automatically! Visit `https://localhost:8443` and enter the access password shown during installation!
+
+**Service management:**
+```bash
+systemctl --user status opengloves  # Check status
+systemctl --user restart opengloves # Restart service
+systemctl --user stop opengloves    # Stop service
+journalctl --user -u opengloves -f  # View logs
+```
+
+**Or run manually:**
 ```bash
 cd ~/.opengloves
 npm start
 ```
-
-Then visit `https://localhost:8443` and enter the access password shown during installation!
 
 ### OpenClaw Gateway Configuration
 

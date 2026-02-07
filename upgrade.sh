@@ -290,6 +290,39 @@ if [ "$MIGRATE_LOCATION" = true ]; then
     CURRENT_DIR="$NEW_LOCATION"
 fi
 
+# Install/update systemd service
+echo "📦 更新 systemd 服务..."
+SYSTEMD_DIR="$HOME/.config/systemd/user"
+mkdir -p "$SYSTEMD_DIR"
+
+if [ -f "opengloves.service" ]; then
+    cp opengloves.service "$SYSTEMD_DIR/opengloves.service"
+    systemctl --user daemon-reload
+    
+    # Check if service was already running
+    if systemctl --user is-active --quiet opengloves.service; then
+        echo "🔄 重启 OpenGloves 服务..."
+        systemctl --user restart opengloves.service
+        RESTARTED=true
+    else
+        echo "🚀 启动 OpenGloves 服务..."
+        systemctl --user enable opengloves.service
+        systemctl --user start opengloves.service
+        RESTARTED=true
+    fi
+    
+    if systemctl --user is-active --quiet opengloves.service; then
+        echo "✅ OpenGloves 服务已运行"
+    else
+        echo "⚠️  服务启动失败，请手动启动"
+        RESTARTED=false
+    fi
+else
+    echo "⚠️  未找到服务文件，请手动启动"
+    RESTARTED=false
+fi
+
+echo ""
 echo "✨ 升级完成！"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -305,13 +338,27 @@ echo "  📱 移动端优化界面"
 echo "  📲 PWA 应用支持"
 echo "  🛡️ 密码哈希传输，防止嗅探和重放攻击"
 echo ""
-echo "🚀 启动服务器："
-if [ "$MIGRATE_LOCATION" = true ]; then
-    echo "  cd ~/.opengloves"
+echo "🚀 服务管理："
+if [ "$RESTARTED" = true ]; then
+    echo "  服务已自动启动！"
+    echo ""
+    echo "  管理命令:"
+    echo "    systemctl --user status opengloves  # 查看状态"
+    echo "    systemctl --user restart opengloves # 重启服务"
+    echo "    systemctl --user stop opengloves    # 停止服务"
+    echo "    journalctl --user -u opengloves -f  # 查看日志"
 else
-    echo "  cd $CURRENT_DIR"
+    echo "  手动启动:"
+    if [ "$MIGRATE_LOCATION" = true ]; then
+        echo "    cd ~/.opengloves && npm start"
+    else
+        echo "    cd $CURRENT_DIR && npm start"
+    fi
+    echo ""
+    echo "  或安装为服务:"
+    echo "    systemctl --user enable opengloves.service"
+    echo "    systemctl --user start opengloves.service"
 fi
-echo "  npm start"
 echo ""
 echo "🌐 访问地址："
 echo "  https://localhost:8443"

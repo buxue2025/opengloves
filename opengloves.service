@@ -1,0 +1,23 @@
+[Unit]
+Description=OpenGloves - Web Interface for OpenClaw (v0.02)
+After=network.target openclaw-gateway.service
+Wants=openclaw-gateway.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.opengloves
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment
+Environment=NODE_ENV=production
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target
