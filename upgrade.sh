@@ -1,0 +1,180 @@
+#!/bin/bash
+# OpenGloves Auto Upgrade Script
+# Upgrades from v0.01 to v0.02
+
+set -e  # Exit on error
+
+echo "🧤 OpenGloves 自动升级脚本 v0.01 → v0.02"
+echo ""
+
+# Check if we're in the opengloves directory
+if [ ! -f "package.json" ]; then
+    echo "❌ 错误：请在 opengloves 目录中运行此脚本"
+    echo "   cd ~/opengloves && bash upgrade.sh"
+    exit 1
+fi
+
+# Check if config.json exists
+if [ ! -f "config.json" ]; then
+    echo "❌ 错误：未找到 config.json 文件"
+    exit 1
+fi
+
+echo "📋 升级前检查..."
+echo ""
+
+# Show current version
+CURRENT_VERSION=$(grep '"version"' package.json | head -1 | sed 's/.*"version": "\(.*\)".*/\1/')
+echo "当前版本: $CURRENT_VERSION"
+echo ""
+
+# Backup current config
+echo "💾 备份配置文件..."
+BACKUP_FILE="config.json.backup.$(date +%Y%m%d_%H%M%S)"
+cp config.json "$BACKUP_FILE"
+echo "✅ 已备份到: $BACKUP_FILE"
+echo ""
+
+# Save current config values
+echo "📝 读取当前配置..."
+GATEWAY_URL=$(python3 -c "import json; print(json.load(open('config.json')).get('gateway', {}).get('url', 'ws://localhost:18789'))" 2>/dev/null || echo "ws://localhost:18789")
+GATEWAY_TOKEN=$(python3 -c "import json; print(json.load(open('config.json')).get('gateway', {}).get('token', ''))" 2>/dev/null || echo "")
+SESSION_KEY=$(python3 -c "import json; print(json.load(open('config.json')).get('ui', {}).get('sessionKey', 'main'))" 2>/dev/null || echo "main")
+
+echo "  Gateway URL: $GATEWAY_URL"
+echo "  Token: ${GATEWAY_TOKEN:0:20}..." 
+echo "  Session Key: $SESSION_KEY"
+echo ""
+
+# Stop any running server
+echo "🛑 停止正在运行的服务器..."
+pkill -f "node server.js" 2>/dev/null || true
+sleep 2
+echo ""
+
+# Pull latest code
+echo "📥 拉取最新代码..."
+git fetch origin
+git pull origin main
+echo ""
+
+# Show new version
+NEW_VERSION=$(grep '"version"' package.json | head -1 | sed 's/.*"version": "\(.*\)".*/\1/')
+echo "✅ 已更新到版本: $NEW_VERSION"
+echo ""
+
+# Check if UI config exists
+HAS_UI_CONFIG=$(python3 -c "import json; print('ui' in json.load(open('config.json')))" 2>/dev/null || echo "False")
+
+if [ "$HAS_UI_CONFIG" = "False" ]; then
+    echo "🔧 更新配置文件..."
+    
+    # Generate random password
+    if command -v openssl &> /dev/null; then
+        ACCESS_PASSWORD=$(openssl rand -hex 8)
+    else
+        ACCESS_PASSWORD="changeme123"
+    fi
+    
+    # Update config.json with Python
+    python3 << EOF
+import json
+
+# Read current config
+with open('config.json', 'r') as f:
+    config = json.load(f)
+
+# Add UI configuration if not exists
+if 'ui' not in config:
+    config['ui'] = {}
+
+config['ui']['title'] = 'OpenGloves'
+config['ui']['sessionKey'] = '$SESSION_KEY'
+config['ui']['accessPassword'] = '$ACCESS_PASSWORD'
+
+# Preserve gateway settings
+if 'gateway' not in config:
+    config['gateway'] = {}
+config['gateway']['url'] = '$GATEWAY_URL'
+if '$GATEWAY_TOKEN':
+    config['gateway']['token'] = '$GATEWAY_TOKEN'
+
+# Write updated config
+with open('config.json', 'w') as f:
+    json.dump(config, f, indent=2)
+
+print('✅ 配置文件已更新')
+EOF
+
+    echo ""
+    echo "🔐 访问密码已设置为: $ACCESS_PASSWORD"
+    echo "   （请保存此密码，登录时需要使用）"
+    echo ""
+else
+    echo "✅ 配置文件已包含 UI 设置，跳过更新"
+    # Check if accessPassword exists
+    HAS_PASSWORD=$(python3 -c "import json; print('accessPassword' in json.load(open('config.json')).get('ui', {}))" 2>/dev/null || echo "False")
+    
+    if [ "$HAS_PASSWORD" = "False" ]; then
+        echo "⚠️  未检测到访问密码，添加默认密码..."
+        
+        if command -v openssl &> /dev/null; then
+            ACCESS_PASSWORD=$(openssl rand -hex 8)
+        else
+            ACCESS_PASSWORD="changeme123"
+        fi
+        
+        python3 << EOF
+import json
+with open('config.json', 'r') as f:
+    config = json.load(f)
+config['ui']['accessPassword'] = '$ACCESS_PASSWORD'
+with open('config.json', 'w') as f:
+    json.dump(config, f, indent=2)
+EOF
+        echo "🔐 访问密码已设置为: $ACCESS_PASSWORD"
+    else
+        EXISTING_PASSWORD=$(python3 -c "import json; print(json.load(open('config.json')).get('ui', {}).get('accessPassword', ''))" 2>/dev/null || echo "")
+        echo "🔐 使用现有访问密码: ${EXISTING_PASSWORD:0:5}***"
+    fi
+    echo ""
+fi
+
+# Install any new dependencies (if needed)
+if [ -f "package-lock.json" ]; then
+    echo "📦 检查依赖..."
+    npm install --silent 2>/dev/null || true
+    echo ""
+fi
+
+echo "✨ 升级完成！"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "🆕 v0.02 新特性："
+echo "  ⚡ 快捷命令系统 (/help, /clear, /export, /theme)"
+echo "  🔐 独立访问密码认证"
+echo "  📱 移动端优化界面"
+echo "  📲 PWA 应用支持"
+echo ""
+echo "🚀 启动服务器："
+echo "  npm start"
+echo ""
+echo "🌐 访问地址："
+echo "  http://localhost:8080"
+echo ""
+if [ -n "$ACCESS_PASSWORD" ]; then
+    echo "🔑 访问密码："
+    echo "  $ACCESS_PASSWORD"
+    echo ""
+fi
+echo "💡 使用提示："
+echo "  1. 输入访问密码后点击 Connect"
+echo "  2. 输入 /help 查看所有快捷命令"
+echo "  3. 使用 /export md 导出聊天记录"
+echo "  4. 移动端可安装为 PWA 应用"
+echo ""
+echo "📋 备份文件："
+echo "  $BACKUP_FILE"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

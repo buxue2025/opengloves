@@ -13,7 +13,34 @@
 
 ## 🚀 升级方法
 
-### 方法一：自动升级（推荐）
+### 方法一：一键自动升级（推荐）⭐
+
+使用自动升级脚本，全程无需手动操作：
+
+```bash
+cd ~/opengloves
+curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.sh | bash
+```
+
+**或者如果已经克隆了仓库：**
+
+```bash
+cd ~/opengloves
+git pull origin main
+bash upgrade.sh
+```
+
+**自动升级脚本会：**
+- ✅ 自动备份当前配置
+- ✅ 保存现有的 Gateway Token
+- ✅ 拉取最新代码
+- ✅ 自动更新配置文件
+- ✅ 生成安全访问密码（或保留现有密码）
+- ✅ 显示升级后的使用说明
+
+---
+
+### 方法二：手动升级
 
 ```bash
 # 1. 进入 opengloves 目录
@@ -47,7 +74,7 @@ npm start
 
 ---
 
-### 方法二：全新安装（最简单）
+### 方法三：全新安装
 
 如果遇到任何问题，建议完全重新安装：
 

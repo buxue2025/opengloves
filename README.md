@@ -22,7 +22,11 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 
 ## 🚀 Quick Start
 
-> **Upgrading from v0.01?** See [UPGRADE.md](./UPGRADE.md) for upgrade instructions.
+> **Upgrading from v0.01?** Use one-command upgrade:
+> ```bash
+> cd ~/opengloves && curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.sh | bash
+> ```
+> Or see [UPGRADE.md](./UPGRADE.md) for detailed instructions.
 
 ### Remote Installation (Recommended)
 

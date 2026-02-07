@@ -22,7 +22,11 @@
 
 ## 🚀 快速开始
 
-> **从 v0.01 升级？** 请查看 [UPGRADE.md](./UPGRADE.md) 获取升级指南。
+> **从 v0.01 升级？** 使用一键升级命令：
+> ```bash
+> cd ~/opengloves && curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.sh | bash
+> ```
+> 或查看 [UPGRADE.md](./UPGRADE.md) 获取详细说明。
 
 ### 远程安装（推荐）
 
