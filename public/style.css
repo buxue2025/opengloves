@@ -227,7 +227,68 @@ body {
 }
 
 .mobile-settings {
+    display: flex;
+    gap: var(--space-sm);
     margin-bottom: var(--space-sm);
+}
+
+.mobile-settings-toggle {
+    padding: var(--space-sm) var(--space-md);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    white-space: nowrap;
+}
+
+.mobile-settings-toggle:hover {
+    background: var(--surface-highlight);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.mobile-settings-toggle.active {
+    background: var(--primary);
+    color: var(--text-primary);
+    border-color: var(--primary);
+}
+
+.mobile-settings-panel {
+    background: var(--surface-elevated);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-sm);
+    border: 1px solid var(--border);
+}
+
+.mobile-setting-item {
+    padding: var(--space-sm) 0;
+}
+
+.mobile-setting-item:not(:last-child) {
+    border-bottom: 1px solid var(--border);
+}
+
+.mobile-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+.mobile-checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.mobile-checkbox-label span {
+    flex: 1;
+    font-size: 0.875rem;
 }
 
 .mobile-password-input {

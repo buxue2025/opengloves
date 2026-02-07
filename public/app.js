@@ -489,6 +489,11 @@ class ChatUI {
             mobileConnectionStatus: document.getElementById('mobileConnectionStatus'),
             mobileStatusDot: document.querySelector('.mobile-status-dot'),
             mobileStatusText: document.querySelector('.mobile-status-text'),
+            mobileSettingsToggle: document.getElementById('mobileSettingsToggle'),
+            mobileSettingsPanel: document.getElementById('mobileSettingsPanel'),
+            mobileAutoScroll: document.getElementById('mobileAutoScroll'),
+            mobileSoundEnabled: document.getElementById('mobileSoundEnabled'),
+            mobileNotificationsEnabled: document.getElementById('mobileNotificationsEnabled'),
             // Other elements
             autoScroll: document.getElementById('autoScroll'),
             soundEnabled: document.getElementById('soundEnabled'),
@@ -508,6 +513,11 @@ class ChatUI {
         this.elements.autoScroll.checked = this.settings.autoScroll;
         this.elements.soundEnabled.checked = this.settings.soundEnabled;
         this.elements.notificationsEnabled.checked = this.settings.notificationsEnabled;
+        
+        // Sync mobile settings
+        this.elements.mobileAutoScroll.checked = this.settings.autoScroll;
+        this.elements.mobileSoundEnabled.checked = this.settings.soundEnabled;
+        this.elements.mobileNotificationsEnabled.checked = this.settings.notificationsEnabled;
     }
 
     bindEvents() {
@@ -518,6 +528,25 @@ class ChatUI {
         // Mobile connection buttons
         this.elements.mobileConnectButton.addEventListener('click', () => this.connect(true));
         this.elements.mobileDisconnectButton.addEventListener('click', () => this.disconnect());
+        
+        // Mobile settings toggle
+        this.elements.mobileSettingsToggle.addEventListener('click', () => this.toggleMobileSettings());
+        
+        // Mobile settings sync
+        this.elements.mobileAutoScroll.addEventListener('change', () => {
+            this.settings.autoScroll = this.elements.mobileAutoScroll.checked;
+            this.elements.autoScroll.checked = this.settings.autoScroll;
+            this.saveSettings();
+        });
+        this.elements.mobileSoundEnabled.addEventListener('change', () => {
+            this.settings.soundEnabled = this.elements.mobileSoundEnabled.checked;
+            this.elements.soundEnabled.checked = this.settings.soundEnabled;
+            this.saveSettings();
+        });
+        this.elements.mobileNotificationsEnabled.addEventListener('change', () => {
+            this.elements.notificationsEnabled.checked = this.elements.mobileNotificationsEnabled.checked;
+            this.toggleNotifications();
+        });
         this.elements.sendButton.addEventListener('click', () => this.sendMessage());
         this.elements.messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -692,6 +721,19 @@ class ChatUI {
             this.elements.sessionKey.value = this.settings.sessionKey;
         }
         this.saveSettings();
+    }
+
+    toggleMobileSettings() {
+        const panel = this.elements.mobileSettingsPanel;
+        const toggle = this.elements.mobileSettingsToggle;
+        
+        if (panel.style.display === 'none') {
+            panel.style.display = 'block';
+            toggle.classList.add('active');
+        } else {
+            panel.style.display = 'none';
+            toggle.classList.remove('active');
+        }
     }
 
     async connect(fromMobile = false) {
