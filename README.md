@@ -11,7 +11,7 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 - 📲 **PWA Support** - Install as native app on mobile and desktop
 
 ### Core Features
-- 🌐 **Single Port Access** - Built-in WebSocket proxy, only needs port 8080 for internet access
+- 🌐 **Single Port Access** - Built-in WebSocket proxy, only needs port 18948 for internet access
 - 🎨 **Modern Dark Theme** - Beautiful, easy-on-the-eyes interface with theme switching
 - 📱 **Mobile-Optimized** - Responsive design with touch-friendly controls
 - 🔒 **Secure** - HTTPS support with automatic certificate generation
@@ -50,7 +50,7 @@ cd ~/.opengloves
 npm start
 ```
 
-Then visit `http://localhost:8080` and enter the access password shown during installation!
+Then visit `https://localhost:18948` and enter the access password shown during installation!
 
 ### Prerequisites
 
@@ -71,7 +71,9 @@ cp config.example.json config.json
 npm start
 ```
 
-Visit `http://localhost:8080` in your browser!
+Visit `https://localhost:18948` in your browser!
+
+**Note:** You'll see a security warning because of the self-signed certificate. This is normal - click "Advanced" → "Proceed to localhost" to continue.
 
 ### 🔐 Access Setup
 1. Enter the access password: `changeme123` (default)
@@ -87,12 +89,12 @@ Edit `config.json` to customize your setup:
   "server": {
     "host": "0.0.0.0",
     "http": {
-      "enabled": true,
+      "enabled": false,
       "port": 8080
     },
     "https": {
-      "enabled": false,
-      "port": 8443,
+      "enabled": true,
+      "port": 18948,
       "autoGenerateCert": true
     }
   },
@@ -240,7 +242,7 @@ Access from another device on your local network is automatic! Just visit your s
 
 ### Can't Access from Other Devices
 
-1. Check firewall allows ports 8080/8443
+1. Check firewall allows port 18948
 2. Verify `server.host` is `"0.0.0.0"` (not `"localhost"`)
 3. Check gateway `allowedOrigins` includes your server IP
 

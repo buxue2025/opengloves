@@ -239,7 +239,8 @@ fi
 echo "  npm start"
 echo ""
 echo "🌐 访问地址："
-echo "  http://localhost:8080"
+echo "  https://localhost:18948"
+echo "  ⚠️  首次访问会看到证书警告，点击'继续访问'即可"
 echo ""
 if [ -n "$ACCESS_PASSWORD" ]; then
     echo "🔑 访问密码："

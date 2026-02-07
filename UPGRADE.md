@@ -129,7 +129,7 @@ cd ~/.opengloves
 2. **WebSocket 代理**
    - v0.02 内置了 WebSocket 代理
    - Gateway URL 会自动通过代理访问
-   - 公网部署只需开放一个端口（8080）
+   - 公网部署只需开放一个端口（18948 HTTPS）
 
 3. **移动端界面**
    - 移动设备会显示专门优化的界面
@@ -149,9 +149,10 @@ cd ~/.opengloves
 
 **v0.02：**
 ```
-1. 访问 http://localhost:8080
-2. 输入访问密码（默认：changeme123）
-3. 点击 Connect 按钮
+1. 访问 https://localhost:18948
+2. 接受自签名证书警告
+3. 输入访问密码（默认：changeme123）
+4. 点击 Connect 按钮
 ```
 
 ### 新功能使用

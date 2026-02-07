@@ -146,7 +146,8 @@ echo "启动命令:"
 echo "  cd ~/.opengloves"
 echo "  npm start"
 echo ""
-echo "访问: http://localhost:8080"
+echo "访问: https://localhost:18948"
+echo "⚠️  首次访问会看到安全警告（自签名证书），点击'继续访问'即可"
 if [ -n "$ACCESS_PASSWORD" ]; then
     echo "🔑 访问密码: $ACCESS_PASSWORD"
 fi

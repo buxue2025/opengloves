@@ -6,7 +6,7 @@
 
 OpenGloves v0.02 带来了重要的安全增强：
 - 🔐 **独立界面密码** - 与 OpenClaw Gateway 认证分离
-- 🎯 **单端口访问** - 内置 WebSocket 代理，仅需开放 8080 端口
+- 🎯 **单端口访问** - 内置 WebSocket 代理，仅需开放 18948 端口（HTTPS）
 - 📱 **移动端优化** - 专门的移动界面和 PWA 支持
 - ⚡ **快捷命令** - `/help`, `/export`, `/clear` 等便捷操作
 
@@ -40,7 +40,7 @@ OpenGloves v0.02 带来了重要的安全增强：
 
 | 方案 | 端口映射 | 安全性 | 复杂度 | 推荐度 |
 |------|----------|--------|--------|--------|
-| **单端口部署** | 仅8080 | ✅ 高 | 🟢 简单 | 🌟 推荐 |
+| **单端口部署** | 仅18948 | ✅ 高 | 🟢 简单 | 🌟 推荐 |
 | **反向代理** | 仅443 | ✅ 最高 | 🟡 中等 | 企业级 |
 | **Cloudflare Tunnel** | 无需映射 | ✅ 最高 | 🟡 中等 | 企业级 |
 
@@ -54,12 +54,12 @@ OpenGloves v0.02 带来了重要的安全增强：
 
 **路由器/防火墙设置**:
 ```
-外部端口 8080 → 内部 Mac Mini:8080 (OpenGloves + 内置代理)
+外部端口 18948 → 内部 Mac Mini:18948 (OpenGloves HTTPS + 内置代理)
 ```
 
-**或者使用非标准端口提高安全性**:
+**或者使用标准 HTTPS 端口**:
 ```
-外部端口 28080 → 内部 Mac Mini:8080
+外部端口 443 → 内部 Mac Mini:18948
 ```
 
 ### 🔐 安全配置
@@ -82,7 +82,7 @@ OpenGloves v0.02 带来了重要的安全增强：
   "server": {
     "https": {
       "enabled": true,
-      "port": 8443
+      "port": 18948
     }
   },
   "gateway": {
@@ -109,8 +109,8 @@ nano ~/.openclaw/openclaw.json
     },
     "controlUi": {
       "allowedOrigins": [
-        "https://你的公网IP:8080",
-        "https://yourdomain.com:8080"
+        "https://你的公网IP:18948",
+        "https://yourdomain.com:18948"
       ]
     }
   }
