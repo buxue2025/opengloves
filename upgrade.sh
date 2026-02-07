@@ -1,6 +1,6 @@
 #!/bin/bash
 # OpenGloves Auto Upgrade Script
-# Upgrades from v0.01 to v0.02
+# Upgrades from v0.01 to v0.09
 # Also migrates from ~/opengloves to ~/.opengloves
 # Supports macOS and Linux
 
@@ -19,7 +19,7 @@ detect_os() {
 
 OS_TYPE=$(detect_os)
 
-echo "🧤 OpenGloves 自动升级脚本 v0.01 → v0.02"
+echo "🧤 OpenGloves 自动升级脚本 v0.01 → v0.09"
 echo "🖥️  检测到系统: $OS_TYPE"
 echo ""
 
@@ -410,7 +410,7 @@ if [ "$MIGRATE_LOCATION" = true ]; then
     echo "📍 新安装位置: $NEW_LOCATION"
     echo ""
 fi
-echo "🆕 v0.02 新特性："
+echo "🆕 v0.09 新特性："
 echo "  ⚡ 快捷命令系统 (/help, /clear, /export, /theme)"
 echo "  🔐 挑战-响应密码认证（SHA-256 哈希）"
 echo "  📱 移动端优化界面"

@@ -4,7 +4,7 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 
 ## ✨ Features
 
-### 🆕 v0.02 New Features
+### 🆕 v0.09 New Features
 - ⚡ **Slash Commands** - Quick actions with `/help`, `/clear`, `/export`, `/theme`, `/status`
 - 🔐 **Independent Authentication** - Secure access control separate from Gateway
 - 📱 **Enhanced Mobile UI** - Dedicated mobile interface with optimized controls
@@ -162,9 +162,9 @@ Look for `gateway.auth.token`.
 
 ## 🔒 Security Features
 
-### Password Protection (v0.02)
+### Password Protection (v0.09)
 
-OpenGloves v0.02 implements secure password authentication:
+OpenGloves v0.09 implements secure password authentication:
 
 - 🔐 **Challenge-Response Authentication**
   - Server generates random nonce for each login
