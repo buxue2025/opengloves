@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>OpenGloves</title>
     <meta name="description" content="Lightweight chat interface for OpenClaw AI assistant">
-    <link rel="stylesheet" href="style.css?v=20260207">
+    <link rel="stylesheet" href="style.css?v=20260207-5">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧤</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧤</text></svg>">
@@ -15,61 +15,71 @@
 </head>
 <body>
     <div class="container">
-        <header class="header">
-            <div class="header-left">
-                <h1>🧤 OpenGloves</h1>
-            </div>
-            <div class="header-right">
-                <div class="connection-status" id="connectionStatus">
-                    <span class="status-dot disconnected"></span>
-                    <span class="status-text">Disconnected</span>
+        <!-- Fixed Mobile Header -->
+        <header class="header" id="mainHeader">
+            <div class="header-content" id="mobileHeaderToggle">
+                <div class="header-left">
+                    <h1>🧤 OpenGloves</h1>
+                    <div class="mobile-header-status" id="mobileHeaderStatus">
+                        <span class="mobile-status-dot disconnected" id="mobileStatusDot"></span>
+                        <span class="mobile-status-text" id="mobileStatusText">Disconnected</span>
+                    </div>
                 </div>
-                <div class="header-buttons">
-                    <button id="connectButton" class="header-btn">Connect</button>
-                    <button id="disconnectButton" class="header-btn" disabled>Disconnect</button>
+                <div class="header-right">
+                    <div class="connection-status" id="connectionStatus">
+                        <span class="status-dot disconnected"></span>
+                        <span class="status-text">Disconnected</span>
+                    </div>
+                    <div class="header-buttons">
+                        <button id="connectButton" class="header-btn">Connect</button>
+                        <button id="disconnectButton" class="header-btn" disabled>Disconnect</button>
+                    </div>
+                </div>
+                <div class="mobile-header-arrow" id="mobileHeaderArrow">
+                    <span class="mobile-toggle-arrow">▼</span>
+                </div>
+            </div>
+            
+            <!-- Mobile Dropdown Panel (Collapsible) -->
+            <div class="mobile-dropdown-panel" id="mobileDropdownPanel">
+                <div class="mobile-dropdown-content" id="mobileDropdownContent">
+                    <div class="mobile-dropdown-section">
+                        <label>Password</label>
+                        <input type="password" id="mobileAccessPassword" placeholder="Enter access password" class="mobile-password-input">
+                    </div>
+                    <div class="mobile-dropdown-section">
+                        <label>Session Key</label>
+                        <input type="text" id="mobileSessionKey" placeholder="main" value="main" class="mobile-session-input">
+                    </div>
+                    <div class="mobile-dropdown-buttons">
+                        <button id="mobileConnectButton" class="mobile-connect-btn">Connect</button>
+                        <button id="mobileDisconnectButton" class="mobile-disconnect-btn" disabled>Disconnect</button>
+                    </div>
+                    <div class="mobile-dropdown-divider"></div>
+                    <div class="mobile-dropdown-settings">
+                        <div class="mobile-setting-item">
+                            <label class="mobile-checkbox-label">
+                                <input type="checkbox" id="mobileAutoScroll" checked>
+                                <span>Auto-scroll</span>
+                            </label>
+                        </div>
+                        <div class="mobile-setting-item">
+                            <label class="mobile-checkbox-label">
+                                <input type="checkbox" id="mobileSoundEnabled" checked>
+                                <span>Sound</span>
+                            </label>
+                        </div>
+                        <div class="mobile-setting-item">
+                            <label class="mobile-checkbox-label">
+                                <input type="checkbox" id="mobileNotificationsEnabled">
+                                <span>Notifications</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
         
-        <!-- Mobile connection panel -->
-        <div class="mobile-connection-panel" id="mobileConnectionPanel">
-            <div class="mobile-auth-section">
-                <input type="password" id="mobileAccessPassword" placeholder="Enter access password" class="mobile-password-input">
-                <div class="mobile-buttons">
-                    <button id="mobileConnectButton" class="mobile-connect-btn">Connect</button>
-                    <button id="mobileDisconnectButton" class="mobile-disconnect-btn" disabled>Disconnect</button>
-                </div>
-            </div>
-            <div class="mobile-settings">
-                <input type="text" id="mobileSessionKey" placeholder="Session Key" value="main" class="mobile-session-input">
-                <button id="mobileSettingsToggle" class="mobile-settings-toggle">⚙️ Settings</button>
-            </div>
-            <div class="mobile-settings-panel" id="mobileSettingsPanel" style="display: none;">
-                <div class="mobile-setting-item">
-                    <label class="mobile-checkbox-label">
-                        <input type="checkbox" id="mobileAutoScroll" checked>
-                        <span>Auto-scroll to new messages</span>
-                    </label>
-                </div>
-                <div class="mobile-setting-item">
-                    <label class="mobile-checkbox-label">
-                        <input type="checkbox" id="mobileSoundEnabled" checked>
-                        <span>Enable notification sound</span>
-                    </label>
-                </div>
-                <div class="mobile-setting-item">
-                    <label class="mobile-checkbox-label">
-                        <input type="checkbox" id="mobileNotificationsEnabled">
-                        <span>Enable system notifications</span>
-                    </label>
-                </div>
-            </div>
-            <div class="mobile-status" id="mobileConnectionStatus">
-                <span class="mobile-status-dot disconnected"></span>
-                <span class="mobile-status-text">Disconnected</span>
-            </div>
-        </div>
-
         <main class="main">
             <div class="chat-container">
                 <div class="messages" id="messages">
@@ -91,6 +101,8 @@
                 <div id="filePreviews" class="file-previews hidden"></div>
             </div>
 
+
+            <!-- Desktop Sidebar (visible only on desktop) -->
             <aside class="sidebar">
                 <div class="sidebar-section">
                     <h3>Access</h3>
@@ -152,6 +164,6 @@
 
     <div id="toast" class="toast"></div>
 
-    <script src="app.js?v=20260207" type="module"></script>
+    <script src="app.js?v=20260207-4" type="module"></script>
 </body>
 </html>

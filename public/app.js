@@ -486,11 +486,12 @@ class ChatUI {
             mobileSessionKey: document.getElementById('mobileSessionKey'),
             mobileConnectButton: document.getElementById('mobileConnectButton'),
             mobileDisconnectButton: document.getElementById('mobileDisconnectButton'),
-            mobileConnectionStatus: document.getElementById('mobileConnectionStatus'),
-            mobileStatusDot: document.querySelector('.mobile-status-dot'),
-            mobileStatusText: document.querySelector('.mobile-status-text'),
-            mobileSettingsToggle: document.getElementById('mobileSettingsToggle'),
-            mobileSettingsPanel: document.getElementById('mobileSettingsPanel'),
+            mobileDropdownToggle: document.getElementById('mobileDropdownToggle'),
+            mobileDropdownContent: document.getElementById('mobileDropdownContent'),
+            mobileStatusDot: document.getElementById('mobileStatusDot'),
+            mobileStatusText: document.getElementById('mobileStatusText'),
+            mobileHeaderToggle: document.getElementById('mobileHeaderToggle'),
+            mobileHeaderArrow: document.getElementById('mobileHeaderArrow'),
             mobileAutoScroll: document.getElementById('mobileAutoScroll'),
             mobileSoundEnabled: document.getElementById('mobileSoundEnabled'),
             mobileNotificationsEnabled: document.getElementById('mobileNotificationsEnabled'),
@@ -529,8 +530,16 @@ class ChatUI {
         this.elements.mobileConnectButton.addEventListener('click', () => this.connect(true));
         this.elements.mobileDisconnectButton.addEventListener('click', () => this.disconnect());
         
-        // Mobile settings toggle
-        this.elements.mobileSettingsToggle.addEventListener('click', () => this.toggleMobileSettings());
+        // Mobile header toggle (click anywhere on header)
+        if (this.elements.mobileHeaderToggle) {
+            this.elements.mobileHeaderToggle.addEventListener('click', (e) => {
+                // Prevent toggle when clicking on input elements
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') {
+                    return;
+                }
+                this.toggleMobileDropdown();
+            });
+        }
         
         // Mobile settings sync
         this.elements.mobileAutoScroll.addEventListener('change', () => {
@@ -723,16 +732,15 @@ class ChatUI {
         this.saveSettings();
     }
 
-    toggleMobileSettings() {
-        const panel = this.elements.mobileSettingsPanel;
-        const toggle = this.elements.mobileSettingsToggle;
+    toggleMobileDropdown() {
+        const content = this.elements.mobileDropdownContent;
+        const arrow = this.elements.mobileHeaderArrow;
         
-        if (panel.style.display === 'none') {
-            panel.style.display = 'block';
-            toggle.classList.add('active');
-        } else {
-            panel.style.display = 'none';
-            toggle.classList.remove('active');
+        if (content) {
+            content.classList.toggle('expanded');
+        }
+        if (arrow) {
+            arrow.classList.toggle('expanded');
         }
     }
 
@@ -886,24 +894,24 @@ class ChatUI {
         // Update desktop status
         const dot = this.elements.statusDot;
         const statusText = this.elements.statusText;
-        dot.className = 'status-dot ' + status;
-        statusText.textContent = text;
+        if (dot) dot.className = 'status-dot ' + status;
+        if (statusText) statusText.textContent = text;
 
-        // Update mobile status
+        // Update mobile status bar
         const mobileDot = this.elements.mobileStatusDot;
         const mobileStatusText = this.elements.mobileStatusText;
-        mobileDot.className = 'mobile-status-dot ' + status;
-        mobileStatusText.textContent = text;
+        if (mobileDot) mobileDot.className = 'mobile-status-dot ' + status;
+        if (mobileStatusText) mobileStatusText.textContent = text;
 
         // Update disconnect buttons
         const isConnected = status === 'connected';
-        this.elements.disconnectButton.disabled = !isConnected;
-        this.elements.mobileDisconnectButton.disabled = !isConnected;
+        if (this.elements.disconnectButton) this.elements.disconnectButton.disabled = !isConnected;
+        if (this.elements.mobileDisconnectButton) this.elements.mobileDisconnectButton.disabled = !isConnected;
         
         // Update connect buttons
         const isConnecting = status === 'connecting';
-        this.elements.connectButton.disabled = isConnecting || isConnected;
-        this.elements.mobileConnectButton.disabled = isConnecting || isConnected;
+        if (this.elements.connectButton) this.elements.connectButton.disabled = isConnecting || isConnected;
+        if (this.elements.mobileConnectButton) this.elements.mobileConnectButton.disabled = isConnecting || isConnected;
     }
 
     enableChat() {
