@@ -1256,7 +1256,7 @@ button:disabled {
         display: flex;
         gap: var(--space-sm);
         align-items: center;
-        justify-content: flex-end;
+        justify-content: center;
         width: 100%;
     }
     
