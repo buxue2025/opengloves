@@ -2,10 +2,25 @@
 # OpenGloves Auto Upgrade Script
 # Upgrades from v0.01 to v0.02
 # Also migrates from ~/opengloves to ~/.opengloves
+# Supports macOS and Linux
 
 set -e  # Exit on error
 
+# Detect OS
+detect_os() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "macos"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "linux"
+    else
+        echo "unknown"
+    fi
+}
+
+OS_TYPE=$(detect_os)
+
 echo "🧤 OpenGloves 自动升级脚本 v0.01 → v0.02"
+echo "🖥️  检测到系统: $OS_TYPE"
 echo ""
 
 # Detect current installation directory
@@ -290,36 +305,98 @@ if [ "$MIGRATE_LOCATION" = true ]; then
     CURRENT_DIR="$NEW_LOCATION"
 fi
 
-# Install/update systemd service
-echo "📦 更新 systemd 服务..."
-SYSTEMD_DIR="$HOME/.config/systemd/user"
-mkdir -p "$SYSTEMD_DIR"
+# Install/update service (macOS or Linux)
+echo "📦 更新后台服务..."
 
-if [ -f "opengloves.service" ]; then
-    cp opengloves.service "$SYSTEMD_DIR/opengloves.service"
-    systemctl --user daemon-reload
+# Create logs directory
+mkdir -p logs
+
+RESTARTED=false
+
+if [ "$OS_TYPE" = "macos" ]; then
+    # macOS - use launchd
+    PLIST_FILE="$HOME/Library/LaunchAgents/com.opengloves.plist"
+    USERNAME=$(whoami)
+    NODE_PATH=$(which node)
     
-    # Check if service was already running
-    if systemctl --user is-active --quiet opengloves.service; then
-        echo "🔄 重启 OpenGloves 服务..."
-        systemctl --user restart opengloves.service
+    # Generate plist
+    cat > "$PLIST_FILE" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.opengloves</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$NODE_PATH</string>
+        <string>server.js</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>$CURRENT_DIR</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>$CURRENT_DIR/logs/stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>$CURRENT_DIR/logs/stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>NODE_ENV</key>
+        <string>production</string>
+    </dict>
+</dict>
+</plist>
+EOF
+    
+    # Restart service
+    launchctl unload "$PLIST_FILE" 2>/dev/null || true
+    sleep 1
+    launchctl load "$PLIST_FILE"
+    sleep 2
+    
+    if launchctl list | grep -q com.opengloves; then
+        echo "✅ OpenGloves 服务已重启 (launchd)"
         RESTARTED=true
     else
-        echo "🚀 启动 OpenGloves 服务..."
-        systemctl --user enable opengloves.service
-        systemctl --user start opengloves.service
-        RESTARTED=true
-    fi
-    
-    if systemctl --user is-active --quiet opengloves.service; then
-        echo "✅ OpenGloves 服务已运行"
-    else
-        echo "⚠️  服务启动失败，请手动启动"
+        echo "⚠️  服务启动失败"
         RESTARTED=false
     fi
+    
+elif [ "$OS_TYPE" = "linux" ]; then
+    # Linux - use systemd
+    SYSTEMD_DIR="$HOME/.config/systemd/user"
+    mkdir -p "$SYSTEMD_DIR"
+    
+    if [ -f "opengloves.service" ]; then
+        cp opengloves.service "$SYSTEMD_DIR/opengloves.service"
+        systemctl --user daemon-reload
+        
+        # Check if service was already running
+        if systemctl --user is-active --quiet opengloves.service; then
+            echo "🔄 重启 OpenGloves 服务..."
+            systemctl --user restart opengloves.service
+        else
+            echo "🚀 启动 OpenGloves 服务..."
+            systemctl --user enable opengloves.service
+            systemctl --user start opengloves.service
+        fi
+        
+        if systemctl --user is-active --quiet opengloves.service; then
+            echo "✅ OpenGloves 服务已运行 (systemd)"
+            RESTARTED=true
+        else
+            echo "⚠️  服务启动失败"
+            RESTARTED=false
+        fi
+    fi
 else
-    echo "⚠️  未找到服务文件，请手动启动"
-    RESTARTED=false
+    echo "⚠️  未知系统，跳过服务安装"
 fi
 
 echo ""
@@ -340,13 +417,21 @@ echo "  🛡️ 密码哈希传输，防止嗅探和重放攻击"
 echo ""
 echo "🚀 服务管理："
 if [ "$RESTARTED" = true ]; then
-    echo "  服务已自动启动！"
+    echo "  服务已自动重启！"
     echo ""
-    echo "  管理命令:"
-    echo "    systemctl --user status opengloves  # 查看状态"
-    echo "    systemctl --user restart opengloves # 重启服务"
-    echo "    systemctl --user stop opengloves    # 停止服务"
-    echo "    journalctl --user -u opengloves -f  # 查看日志"
+    if [ "$OS_TYPE" = "macos" ]; then
+        echo "  macOS 管理命令:"
+        echo "    launchctl list | grep opengloves           # 查看状态"
+        echo "    launchctl unload ~/Library/LaunchAgents/com.opengloves.plist"
+        echo "    launchctl load ~/Library/LaunchAgents/com.opengloves.plist   # 重启"
+        echo "    tail -f ~/.opengloves/logs/stdout.log     # 查看日志"
+    else
+        echo "  Linux 管理命令:"
+        echo "    systemctl --user status opengloves  # 查看状态"
+        echo "    systemctl --user restart opengloves # 重启服务"
+        echo "    systemctl --user stop opengloves    # 停止服务"
+        echo "    journalctl --user -u opengloves -f  # 查看日志"
+    fi
 else
     echo "  手动启动:"
     if [ "$MIGRATE_LOCATION" = true ]; then

@@ -1,12 +1,47 @@
 #!/bin/bash
-# save as: install-opengloves.sh
-echo "🧤 OpenGloves v0.02 安装脚本 for Mac Mini"
+# OpenGloves Installation Script v0.02
+# Supports macOS and Linux
+
+set -e  # Exit on error
+
+# Detect OS
+detect_os() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "macos"
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        echo "linux"
+    else
+        echo "unknown"
+    fi
+}
+
+OS_TYPE=$(detect_os)
+
+echo "🧤 OpenGloves v0.02 安装脚本"
+echo "🖥️  检测到系统: $OS_TYPE"
+echo ""
+
 # 检查 Node.js
 if ! command -v node &> /dev/null; then
     echo "❌ 需要 Node.js 18+"
-    echo "请安装: brew install node"
+    if [ "$OS_TYPE" = "macos" ]; then
+        echo "请安装: brew install node"
+    elif [ "$OS_TYPE" = "linux" ]; then
+        echo "请安装: sudo apt install nodejs npm  # Debian/Ubuntu"
+        echo "        sudo yum install nodejs npm  # RHEL/CentOS"
+    fi
     exit 1
 fi
+
+NODE_VERSION=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
+if [ "$NODE_VERSION" -lt 18 ]; then
+    echo "⚠️  Node.js 版本过低: $(node --version)"
+    echo "   需要 Node.js 18 或更高版本"
+    exit 1
+fi
+
+echo "✅ Node.js $(node --version)"
+echo ""
 # 克隆仓库
 echo "📥 下载 OpenGloves..."
 INSTALL_DIR="$HOME/.opengloves"
@@ -141,23 +176,87 @@ EOF
 fi
 echo ""
 
-# Install systemd service
-echo "📦 安装 systemd 服务..."
-SYSTEMD_DIR="$HOME/.config/systemd/user"
-mkdir -p "$SYSTEMD_DIR"
+# Install service (macOS or Linux)
+echo "📦 安装后台服务..."
 
-# Copy service file
-cp opengloves.service "$SYSTEMD_DIR/opengloves.service"
+# Create logs directory
+mkdir -p "$INSTALL_DIR/logs"
 
-# Enable and start service
-systemctl --user daemon-reload
-systemctl --user enable opengloves.service
-systemctl --user start opengloves.service
-
-if systemctl --user is-active --quiet opengloves.service; then
-    echo "✅ OpenGloves 服务已启动"
+# Detect OS and install appropriate service
+if [ "$OS_TYPE" = "macos" ]; then
+    # macOS - use launchd
+    PLIST_FILE="$HOME/Library/LaunchAgents/com.opengloves.plist"
+    
+    # Generate plist with correct username and paths
+    USERNAME=$(whoami)
+    NODE_PATH=$(which node)
+    
+    cat > "$PLIST_FILE" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.opengloves</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$NODE_PATH</string>
+        <string>server.js</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>$INSTALL_DIR</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>$INSTALL_DIR/logs/stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>$INSTALL_DIR/logs/stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>NODE_ENV</key>
+        <string>production</string>
+    </dict>
+</dict>
+</plist>
+EOF
+    
+    # Load service
+    launchctl unload "$PLIST_FILE" 2>/dev/null || true
+    launchctl load "$PLIST_FILE"
+    
+    if launchctl list | grep -q com.opengloves; then
+        echo "✅ OpenGloves 服务已启动 (launchd)"
+        SERVICE_INSTALLED=true
+    else
+        echo "⚠️  服务启动失败，请使用手动启动"
+        SERVICE_INSTALLED=false
+    fi
+    
+elif [ "$OS_TYPE" = "linux" ]; then
+    # Linux - use systemd
+    SYSTEMD_DIR="$HOME/.config/systemd/user"
+    mkdir -p "$SYSTEMD_DIR"
+    
+    cp opengloves.service "$SYSTEMD_DIR/opengloves.service"
+    systemctl --user daemon-reload
+    systemctl --user enable opengloves.service
+    systemctl --user start opengloves.service
+    
+    if systemctl --user is-active --quiet opengloves.service; then
+        echo "✅ OpenGloves 服务已启动 (systemd)"
+        SERVICE_INSTALLED=true
+    else
+        echo "⚠️  服务启动失败，请使用手动启动"
+        SERVICE_INSTALLED=false
+    fi
 else
-    echo "⚠️  服务启动失败，请使用手动启动: npm start"
+    echo "⚠️  未知系统，跳过服务安装"
+    SERVICE_INSTALLED=false
 fi
 
 echo ""
@@ -171,15 +270,25 @@ echo "  🔐 挑战-响应密码认证（SHA-256哈希）"
 echo "  📱 移动端优化界面"
 echo "  📲 PWA 应用支持"
 echo ""
-echo "🔧 服务管理命令:"
-echo "  启动: systemctl --user start opengloves"
-echo "  停止: systemctl --user stop opengloves"
-echo "  重启: systemctl --user restart opengloves"
-echo "  状态: systemctl --user status opengloves"
-echo "  日志: journalctl --user -u opengloves -f"
-echo ""
-echo "或手动启动:"
-echo "  cd ~/.opengloves && npm start"
+if [ "$SERVICE_INSTALLED" = true ]; then
+    echo "🔧 服务管理命令:"
+    if [ "$OS_TYPE" = "macos" ]; then
+        echo "  停止: launchctl unload ~/Library/LaunchAgents/com.opengloves.plist"
+        echo "  启动: launchctl load ~/Library/LaunchAgents/com.opengloves.plist"
+        echo "  重启: launchctl unload ~/Library/LaunchAgents/com.opengloves.plist && launchctl load ~/Library/LaunchAgents/com.opengloves.plist"
+        echo "  状态: launchctl list | grep opengloves"
+        echo "  日志: tail -f ~/.opengloves/logs/stdout.log"
+    else
+        echo "  启动: systemctl --user start opengloves"
+        echo "  停止: systemctl --user stop opengloves"
+        echo "  重启: systemctl --user restart opengloves"
+        echo "  状态: systemctl --user status opengloves"
+        echo "  日志: journalctl --user -u opengloves -f"
+    fi
+else
+    echo "🔧 手动启动:"
+    echo "  cd ~/.opengloves && npm start"
+fi
 echo ""
 echo "访问: https://localhost:8443"
 echo "⚠️  首次访问会看到安全警告（自签名证书），点击'继续访问'即可"
