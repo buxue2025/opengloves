@@ -1,17 +1,60 @@
 #!/bin/bash
 # OpenGloves Auto Upgrade Script
 # Upgrades from v0.01 to v0.02
+# Also migrates from ~/opengloves to ~/.opengloves
 
 set -e  # Exit on error
 
 echo "🧤 OpenGloves 自动升级脚本 v0.01 → v0.02"
 echo ""
 
-# Check if we're in the opengloves directory
+# Detect current installation directory
+CURRENT_DIR=$(pwd)
+OLD_LOCATION="$HOME/opengloves"
+NEW_LOCATION="$HOME/.opengloves"
+
+# Check if we're in an opengloves directory
 if [ ! -f "package.json" ]; then
     echo "❌ 错误：请在 opengloves 目录中运行此脚本"
     echo "   cd ~/opengloves && bash upgrade.sh"
+    echo "   或 cd ~/.opengloves && bash upgrade.sh"
     exit 1
+fi
+
+# Check if this is the old location
+MIGRATE_LOCATION=false
+if [ "$CURRENT_DIR" = "$OLD_LOCATION" ]; then
+    echo "📦 检测到旧安装位置: ~/opengloves"
+    echo "💡 建议迁移到标准位置: ~/.opengloves"
+    echo ""
+    read -p "是否要迁移到新位置？(Y/n): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+        MIGRATE_LOCATION=true
+    fi
+    echo ""
+fi
+
+# Auto-detect installation if not in a directory
+if [ ! -f "package.json" ]; then
+    echo "🔍 自动检测安装位置..."
+    
+    if [ -d "$NEW_LOCATION" ]; then
+        cd "$NEW_LOCATION"
+        echo "✅ 找到安装: $NEW_LOCATION"
+        CURRENT_DIR="$NEW_LOCATION"
+    elif [ -d "$OLD_LOCATION" ]; then
+        cd "$OLD_LOCATION"
+        echo "✅ 找到安装: $OLD_LOCATION"
+        CURRENT_DIR="$OLD_LOCATION"
+        MIGRATE_LOCATION=true
+        echo "💡 将迁移到标准位置: $NEW_LOCATION"
+    else
+        echo "❌ 错误：未找到 OpenGloves 安装"
+        echo "   请先安装 OpenGloves"
+        exit 1
+    fi
+    echo ""
 fi
 
 # Check if config.json exists
@@ -147,17 +190,52 @@ if [ -f "package-lock.json" ]; then
     echo ""
 fi
 
+# Migrate to new location if requested
+if [ "$MIGRATE_LOCATION" = true ]; then
+    echo "🚚 迁移到新位置..."
+    
+    # Ensure new location doesn't exist
+    if [ -d "$NEW_LOCATION" ]; then
+        echo "⚠️  目标位置已存在，删除中..."
+        rm -rf "$NEW_LOCATION"
+    fi
+    
+    # Copy to new location
+    cp -r "$OLD_LOCATION" "$NEW_LOCATION"
+    
+    echo "✅ 已迁移到: $NEW_LOCATION"
+    echo ""
+    echo "🗑️  删除旧位置..."
+    rm -rf "$OLD_LOCATION"
+    echo "✅ 已清理旧文件"
+    echo ""
+    
+    # Change to new directory
+    cd "$NEW_LOCATION"
+    CURRENT_DIR="$NEW_LOCATION"
+fi
+
 echo "✨ 升级完成！"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
+if [ "$MIGRATE_LOCATION" = true ]; then
+    echo "📍 新安装位置: $NEW_LOCATION"
+    echo ""
+fi
 echo "🆕 v0.02 新特性："
 echo "  ⚡ 快捷命令系统 (/help, /clear, /export, /theme)"
-echo "  🔐 独立访问密码认证"
+echo "  🔐 挑战-响应密码认证（SHA-256 哈希）"
 echo "  📱 移动端优化界面"
 echo "  📲 PWA 应用支持"
+echo "  🛡️ 密码哈希传输，防止嗅探和重放攻击"
 echo ""
 echo "🚀 启动服务器："
+if [ "$MIGRATE_LOCATION" = true ]; then
+    echo "  cd ~/.opengloves"
+else
+    echo "  cd $CURRENT_DIR"
+fi
 echo "  npm start"
 echo ""
 echo "🌐 访问地址："
@@ -173,6 +251,11 @@ echo "  1. 输入访问密码后点击 Connect"
 echo "  2. 输入 /help 查看所有快捷命令"
 echo "  3. 使用 /export md 导出聊天记录"
 echo "  4. 移动端可安装为 PWA 应用"
+echo ""
+echo "🔒 安全提醒："
+echo "  • 密码已使用 SHA-256 哈希传输"
+echo "  • 公网访问请务必启用 HTTPS"
+echo "  • 建议修改默认密码（编辑 config.json）"
 echo ""
 echo "📋 备份文件："
 echo "  $BACKUP_FILE"

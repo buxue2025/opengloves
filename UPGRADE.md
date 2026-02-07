@@ -18,19 +18,24 @@
 使用自动升级脚本，全程无需手动操作：
 
 ```bash
-cd ~/opengloves
 curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.sh | bash
 ```
 
-**或者如果已经克隆了仓库：**
+**脚本会自动：**
+- 🔍 检测安装位置（~/opengloves 或 ~/.opengloves）
+- 🚚 迁移到标准位置 ~/.opengloves（如果需要）
+- 📦 完成所有升级步骤
+
+**或者如果已在安装目录中：**
 
 ```bash
-cd ~/opengloves
-git pull origin main
-bash upgrade.sh
+cd ~/opengloves  # 或 cd ~/.opengloves
+bash <(curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.sh)
 ```
 
 **自动升级脚本会：**
+- 🔍 自动检测安装位置
+- 🚚 迁移到标准位置 ~/.opengloves（如果从旧位置升级）
 - ✅ 自动备份当前配置
 - ✅ 保存现有的 Gateway Token
 - ✅ 拉取最新代码
@@ -43,8 +48,8 @@ bash upgrade.sh
 ### 方法二：手动升级
 
 ```bash
-# 1. 进入 opengloves 目录
-cd ~/opengloves
+# 1. 进入 opengloves 目录（旧位置或新位置）
+cd ~/opengloves  # 或 cd ~/.opengloves
 
 # 2. 备份当前配置
 cp config.json config.json.backup
@@ -79,19 +84,21 @@ npm start
 如果遇到任何问题，建议完全重新安装：
 
 ```bash
-# 1. 备份旧配置中的 token
-cd ~/opengloves
-cat config.json  # 记下你的 gateway token
+# 1. 备份旧配置中的 token（如果存在）
+if [ -f ~/opengloves/config.json ]; then
+    cat ~/opengloves/config.json  # 记下你的 gateway token
+elif [ -f ~/.opengloves/config.json ]; then
+    cat ~/.opengloves/config.json
+fi
 
 # 2. 删除旧版本
-cd ~
-rm -rf opengloves
+rm -rf ~/opengloves ~/.opengloves
 
-# 3. 重新安装
+# 3. 重新安装（自动安装到 ~/.opengloves）
 curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/install-opengloves.sh | bash
 
 # 4. 如果需要，手动恢复 token
-cd ~/opengloves
+cd ~/.opengloves
 # 编辑 config.json，填入之前的 token
 ```
 

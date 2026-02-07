@@ -22,11 +22,12 @@
 
 ## 🚀 快速开始
 
-> **从 v0.01 升级？** 使用一键升级命令：
+> **从 v0.01 升级？** 使用一键升级命令（自动迁移到 ~/.opengloves）：
 > ```bash
-> cd ~/opengloves && curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.sh | bash
+> curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.sh | bash
 > ```
-> 或查看 [UPGRADE.md](./UPGRADE.md) 获取详细说明。
+> 脚本会自动检测您的安装位置。
+> 查看 [UPGRADE.md](./UPGRADE.md) 获取详细说明。
 
 ### 远程安装（推荐）
 
@@ -45,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/install-o
 
 **安装完成后：**
 ```bash
-cd ~/opengloves
+cd ~/.opengloves
 npm start
 ```
 

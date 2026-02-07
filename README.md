@@ -22,11 +22,12 @@ A standalone, modern web interface for chatting with your **OpenClaw** AI assist
 
 ## 🚀 Quick Start
 
-> **Upgrading from v0.01?** Use one-command upgrade:
+> **Upgrading from v0.01?** Use one-command upgrade (auto-migrates to ~/.opengloves):
 > ```bash
-> cd ~/opengloves && curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.sh | bash
+> curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.sh | bash
 > ```
-> Or see [UPGRADE.md](./UPGRADE.md) for detailed instructions.
+> The script will detect your installation location automatically.
+> See [UPGRADE.md](./UPGRADE.md) for detailed instructions.
 
 ### Remote Installation (Recommended)
 
@@ -45,7 +46,7 @@ curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/install-o
 
 **After installation:**
 ```bash
-cd ~/opengloves
+cd ~/.opengloves
 npm start
 ```
 

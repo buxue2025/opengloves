@@ -9,9 +9,25 @@ if ! command -v node &> /dev/null; then
 fi
 # 克隆仓库
 echo "📥 下载 OpenGloves..."
-cd ~
-git clone https://github.com/buxue2025/opengloves.git
-cd opengloves
+INSTALL_DIR="$HOME/.opengloves"
+
+# 检查是否已存在
+if [ -d "$INSTALL_DIR" ]; then
+    echo "⚠️  检测到已安装的 OpenGloves"
+    echo "   位置: $INSTALL_DIR"
+    echo ""
+    read -p "是否要删除并重新安装? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "❌ 安装已取消"
+        echo "💡 如需升级，请使用: bash <(curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.sh)"
+        exit 1
+    fi
+    rm -rf "$INSTALL_DIR"
+fi
+
+git clone https://github.com/buxue2025/opengloves.git "$INSTALL_DIR"
+cd "$INSTALL_DIR"
 # 复制配置
 echo "⚙️  配置中..."
 cp config.example.json config.json
@@ -118,14 +134,16 @@ fi
 echo ""
 echo "🎉 OpenGloves v0.02 安装完成！"
 echo ""
+echo "📍 安装位置: $INSTALL_DIR"
+echo ""
 echo "🆕 v0.02 新特性:"
-echo "  ⚡ 快捷命令系统 (/help, /clear, /export, etc.)"
-echo "  🔐 独立访问密码认证"
+echo "  ⚡ 快捷命令系统 (/help, /clear, /export, /theme)"
+echo "  🔐 挑战-响应密码认证（SHA-256哈希）"
 echo "  📱 移动端优化界面"
-echo "  📲 PWA 应用安装支持"
+echo "  📲 PWA 应用支持"
 echo ""
 echo "启动命令:"
-echo "  cd ~/opengloves"
+echo "  cd ~/.opengloves"
 echo "  npm start"
 echo ""
 echo "访问: http://localhost:8080"
@@ -138,3 +156,8 @@ echo "  1. 输入访问密码后点击 Connect"
 echo "  2. 在聊天中输入 /help 查看快捷命令"
 echo "  3. 移动设备可点击 '📱 安装为应用'"
 echo "  4. 使用 /export md 导出聊天记录"
+echo ""
+echo "🔒 安全提醒:"
+echo "  • 本地访问: 已启用密码哈希保护"
+echo "  • 公网访问: 必须启用 HTTPS"
+echo "  • 建议修改默认密码: 编辑 config.json 中的 ui.accessPassword"
