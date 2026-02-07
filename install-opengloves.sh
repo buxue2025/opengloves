@@ -1,5 +1,5 @@
 #!/bin/bash
-# OpenGloves Installation Script v0.09
+# OpenGloves Installation Script v0.1
 # Supports macOS and Linux
 
 set -e  # Exit on error
@@ -17,7 +17,7 @@ detect_os() {
 
 OS_TYPE=$(detect_os)
 
-echo "🧤 OpenGloves v0.09 安装脚本"
+echo "🧤 OpenGloves v0.1 安装脚本"
 echo "🖥️  检测到系统: $OS_TYPE"
 echo ""
 
@@ -99,7 +99,7 @@ with open('config.json', 'r') as f:
 config['gateway']['url'] = f'ws://${LOCAL_IP}:18789'
 config['gateway']['token'] = '$TOKEN'
 config['gateway']['fallbackUrls'] = ['ws://localhost:18789']
-# 添加 v0.09 UI 配置
+# 添加 v0.1 UI 配置
 if 'ui' not in config:
     config['ui'] = {}
 config['ui']['title'] = 'OpenGloves'
@@ -173,7 +173,7 @@ else
 import json
 with open('config.json', 'r') as f:
     config = json.load(f)
-# 添加 v0.09 UI 配置
+# 添加 v0.1 UI 配置
 if 'ui' not in config:
     config['ui'] = {}
 config['ui']['title'] = 'OpenGloves'
@@ -271,11 +271,11 @@ else
 fi
 
 echo ""
-echo "🎉 OpenGloves v0.09 安装完成！"
+echo "🎉 OpenGloves v0.1 安装完成！"
 echo ""
 echo "📍 安装位置: $INSTALL_DIR"
 echo ""
-echo "🆕 v0.09 新特性:"
+echo "🆕 v0.1 新特性:"
 echo "  ⚡ 快捷命令系统 (/help, /clear, /export, /theme)"
 echo "  🔐 挑战-响应密码认证（SHA-256哈希）"
 echo "  📱 移动端优化界面"

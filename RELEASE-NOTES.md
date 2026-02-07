@@ -1,8 +1,8 @@
-# 🎉 OpenGloves v0.09 - Production Ready Release
+# 🎉 OpenGloves v0.1 - Production Ready Release
 
 **Release Date:** 2026-02-07
 
-OpenGloves v0.09 is a major release that transforms OpenGloves from a basic web interface into a production-ready, secure, and feature-rich PWA for accessing your OpenClaw AI assistant.
+OpenGloves v0.1 is a major release that transforms OpenGloves from a basic web interface into a production-ready, secure, and feature-rich PWA for accessing your OpenClaw AI assistant.
 
 ---
 
@@ -92,7 +92,7 @@ curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/upgrade.s
 
 ### Password Authentication
 
-**v0.09 implements secure authentication flow:**
+**v0.1 implements secure authentication flow:**
 
 1. Client requests challenge from `/api/auth/challenge`
 2. Server returns random 32-byte nonce
@@ -248,7 +248,7 @@ Edit `~/.openclaw/openclaw.json`:
 
 ## 🐛 Known Issues
 
-None reported in v0.09.
+None reported in v0.1.
 
 ---
 
@@ -282,4 +282,4 @@ Thanks to:
 
 ---
 
-**Enjoy OpenGloves v0.09!** 🧤✨
+**Enjoy OpenGloves v0.1!** 🧤✨

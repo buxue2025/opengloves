@@ -1,8 +1,8 @@
 # 📦 OpenGloves 升级指南
 
-## v0.01 → v0.09 升级
+## v0.01 → v0.1 升级
 
-### 🆕 v0.09 主要新特性
+### 🆕 v0.1 主要新特性
 - ⚡ **快捷命令系统** - `/help`, `/clear`, `/export`, `/theme`, `/reconnect`
 - 🔐 **独立访问密码** - 界面认证与 Gateway 分离
 - 📱 **移动端优化** - 专门的移动界面和触控优化
@@ -127,12 +127,12 @@ cd ~/.opengloves
 ### ⚠️ 重要变更
 
 1. **访问密码是必需的**
-   - v0.09 引入了独立的访问密码认证
+   - v0.1 引入了独立的访问密码认证
    - 首次访问需要输入密码
    - 默认密码：`changeme123`（建议修改）
 
 2. **WebSocket 代理**
-   - v0.09 内置了 WebSocket 代理
+   - v0.1 内置了 WebSocket 代理
    - Gateway URL 会自动通过代理访问
    - 公网部署只需开放一个端口（8443 HTTPS）
 
@@ -156,7 +156,7 @@ cd ~/.opengloves
 
 ### 为什么需要配置？
 
-v0.09 切换到 HTTPS 后，OpenClaw Gateway 需要允许来自 HTTPS 的连接。
+v0.1 切换到 HTTPS 后，OpenClaw Gateway 需要允许来自 HTTPS 的连接。
 
 ### 自动配置（推荐）
 
@@ -202,7 +202,7 @@ systemctl --user restart openclaw-gateway
 2. 直接连接
 ```
 
-**v0.09：**
+**v0.1：**
 ```
 1. 访问 https://localhost:8443
 2. 接受自签名证书警告
@@ -278,10 +278,10 @@ systemctl --user restart openclaw-gateway
 **A:** 可以，token 配置不变，只需添加 UI 密码配置。
 
 ### Q: 移动端看不到侧边栏？
-**A:** 这是正常的，v0.09 在移动端隐藏侧边栏，使用专门的移动连接面板。
+**A:** 这是正常的，v0.1 在移动端隐藏侧边栏，使用专门的移动连接面板。
 
 ### Q: 旧版本的聊天记录还在吗？
-**A:** 聊天记录不会自动保存。v0.09 可以使用 `/export` 命令导出聊天记录。
+**A:** 聊天记录不会自动保存。v0.1 可以使用 `/export` 命令导出聊天记录。
 
 ### Q: 局域网访问显示 "origin not allowed" 错误？
 **A:** 这是因为 OpenClaw Gateway 的 allowedOrigins 需要更新。
@@ -308,7 +308,7 @@ systemctl --user restart openclaw-gateway
 ```
 
 ### Q: 证书警告怎么办？
-**A:** 这是正常的！v0.09 使用自签名证书。点击"高级" → "继续访问"即可。
+**A:** 这是正常的！v0.1 使用自签名证书。点击"高级" → "继续访问"即可。
 
 如需去除警告，可以：
 1. 使用受信任的 CA 证书
@@ -335,4 +335,4 @@ systemctl --user restart openclaw-gateway
 
 ---
 
-**升级成功后，享受 v0.09 的新特性！** 🎉
+**升级成功后，享受 v0.1 的新特性！** 🎉

@@ -1,5 +1,5 @@
 [Unit]
-Description=OpenGloves - Web Interface for OpenClaw (v0.09)
+Description=OpenGloves - Web Interface for OpenClaw (v0.1)
 After=network.target openclaw-gateway.service
 Wants=openclaw-gateway.service
 
