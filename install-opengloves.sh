@@ -80,8 +80,16 @@ try:
     # 获取当前 allowedOrigins
     origins = config.get('gateway', {}).get('controlUi', {}).get('allowedOrigins', [])
     
-    # 添加必需的 origins
-    required_origins = ['http://localhost:8080', 'http://127.0.0.1:8080']
+    # 获取本机 IP
+    import socket
+    local_ip = '$LOCAL_IP' if '$LOCAL_IP' else '192.168.1.100'
+    
+    # 添加必需的 origins (HTTPS + port 8443)
+    required_origins = [
+        'https://localhost:8443', 
+        'https://127.0.0.1:8443',
+        f'https://{local_ip}:8443'
+    ]
     added = []
     for origin in required_origins:
         if origin not in origins:

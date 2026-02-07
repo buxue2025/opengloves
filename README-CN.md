@@ -52,6 +52,36 @@ npm start
 
 然后访问 `https://localhost:8443`，输入安装时显示的访问密码即可！
 
+### OpenClaw Gateway 配置
+
+**安装脚本会自动配置 OpenClaw Gateway**，但如果需要手动配置或支持局域网访问：
+
+```bash
+# 运行配置助手脚本
+cd ~/.opengloves
+bash scripts/configure-gateway.sh
+```
+
+或手动编辑 `~/.openclaw/openclaw.json`：
+```json
+{
+  "gateway": {
+    "controlUi": {
+      "allowedOrigins": [
+        "https://localhost:8443",
+        "https://127.0.0.1:8443",
+        "https://你的局域网IP:8443"
+      ]
+    }
+  }
+}
+```
+
+编辑后重启 Gateway：
+```bash
+systemctl --user restart openclaw-gateway
+```
+
 ### 环境要求
 
 - **Node.js** 18+（使用 `node --version` 检查）

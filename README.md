@@ -52,6 +52,36 @@ npm start
 
 Then visit `https://localhost:8443` and enter the access password shown during installation!
 
+### OpenClaw Gateway Configuration
+
+**The install script automatically configures OpenClaw Gateway**, but if you need to configure manually or access from LAN:
+
+```bash
+# Run the configuration helper
+cd ~/.opengloves
+bash scripts/configure-gateway.sh
+```
+
+Or manually edit `~/.openclaw/openclaw.json`:
+```json
+{
+  "gateway": {
+    "controlUi": {
+      "allowedOrigins": [
+        "https://localhost:8443",
+        "https://127.0.0.1:8443",
+        "https://YOUR_LAN_IP:8443"
+      ]
+    }
+  }
+}
+```
+
+After editing, restart the gateway:
+```bash
+systemctl --user restart openclaw-gateway
+```
+
 ### Prerequisites
 
 - **Node.js** 18+ (check with `node --version`)
