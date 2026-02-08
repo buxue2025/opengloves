@@ -97,7 +97,10 @@ function createWebSocketProxy(server, gatewayUrl) {
     gatewayWs.on('error', (error) => {
       console.error('❌ Gateway connection error:', error.message);
       console.error('   Gateway URL:', gatewayUrl);
-      clientWs.close(1006, 'Gateway connection failed');
+      // Use 1011 (Server Error) instead of reserved 1006
+      if (clientWs.readyState === WebSocket.OPEN) {
+        clientWs.close(1011, 'Gateway connection failed');
+      }
     });
     
     gatewayWs.on('close', (code, reason) => {
