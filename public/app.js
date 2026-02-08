@@ -64,8 +64,7 @@ class GatewayClient {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
-            console.log('✅ WebSocket connected to:', wsUrl);
-            console.log('WebSocket readyState:', this.ws.readyState);
+            console.log('WebSocket connected, sending handshake...');
             this.sendHandshake();
         };
 
@@ -79,8 +78,7 @@ class GatewayClient {
         };
 
         this.ws.onclose = (event) => {
-            console.log(`❌ WebSocket closed: code=${event.code} reason="${event.reason}" wasClean=${event.wasClean}`);
-            console.log('Connection was authenticated:', this.authenticated);
+            console.log(`WebSocket closed: ${event.code} ${event.reason}`);
             this.connected = false;
             this.authenticated = false;
             this.ws = null;
@@ -105,12 +103,7 @@ class GatewayClient {
         };
 
         this.ws.onerror = (error) => {
-            console.error('❌ WebSocket error:', error);
-            console.error('Error details:', {
-                type: error.type,
-                target: error.target ? 'WebSocket' : 'unknown',
-                readyState: this.ws ? this.ws.readyState : 'no ws'
-            });
+            console.error('WebSocket error:', error);
             if (this.onError) {
                 this.onError(error);
             }
@@ -334,12 +327,6 @@ class ChatUI {
     }
 
     async init() {
-        // Detect Safari
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        if (isSafari) {
-            console.log('🍎 Safari detected');
-        }
-        
         await this.loadServerConfig();
         this.loadSettings();
         this.initElements();
@@ -1144,7 +1131,7 @@ class ChatUI {
 
     // Gateway client callbacks
     onGatewayConnect() {
-        console.log('✅ Gateway connection established');
+        console.log('Gateway connection established');
         this.setStatus('connected', 'Connected');
         this.enableChat();
         this.showToast('Connected to gateway', 'success');
@@ -1152,10 +1139,10 @@ class ChatUI {
         // Load chat history
         this.loadHistory();
         
-        // Load available sessions (non-blocking)
-        this.loadSessions().catch(err => {
-            console.warn('Session list failed (non-critical):', err);
-        });
+        // Load available sessions (delayed to prevent blocking)
+        setTimeout(() => {
+            this.loadSessions().catch(err => console.warn('Session load failed:', err));
+        }, 500);
     }
 
     onGatewayDisconnect(event) {
@@ -1482,51 +1469,34 @@ class ChatUI {
         return div.innerHTML;
     }
 
-    showToast(message, type = 'info', duration = 3000) {
-        try {
-            const toast = this.elements.toast;
-            if (!toast) {
-                console.warn('Toast element not found');
-                return;
-            }
-            toast.textContent = message;
-            toast.className = `toast ${type}`;
-            toast.classList.add('show');
+    showToast(message, type = 'info') {
+        const toast = this.elements.toast;
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        toast.classList.add('show');
 
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, duration);
-        } catch (error) {
-            console.error('showToast error:', error);
-        }
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
     }
 
     playNotificationSound() {
         // Create a simple notification sound
-        try {
-            if (!window.AudioContext && !window.webkitAudioContext) {
-                console.warn('AudioContext not available');
-                return;
-            }
-            
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
 
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
 
-            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
-            oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+        oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+        oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
 
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
 
-            oscillator.start();
-            oscillator.stop(audioContext.currentTime + 0.3);
-        } catch (error) {
-            console.warn('Failed to play notification sound:', error.message);
-        }
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.3);
     }
 
     async initServiceWorker() {
@@ -1883,25 +1853,8 @@ class ChatUI {
     }
 }
 
-// Global error handler for debugging
-window.addEventListener('error', (event) => {
-    console.error('❌ Global error:', event.error);
-    console.error('   Message:', event.message);
-    console.error('   File:', event.filename);
-    console.error('   Line:', event.lineno);
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-    console.error('❌ Unhandled promise rejection:', event.reason);
-});
-
 // Initialize the chat UI when the page loads
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Initializing OpenGloves...');
-    console.log('   Location:', window.location.href);
-    console.log('   Protocol:', window.location.protocol);
-    console.log('   Display mode:', window.matchMedia('(display-mode: standalone)').matches ? 'PWA' : 'Browser');
-    
     const chatUI = new ChatUI();
     window.chatUI = chatUI; // Expose for debugging
 
