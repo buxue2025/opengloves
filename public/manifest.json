@@ -2,13 +2,13 @@
   "name": "OpenGloves",
   "short_name": "OpenGloves",
   "description": "Standalone chat interface for OpenClaw AI assistant v0.1",
-  "start_url": "./index.html",
+  "start_url": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#0f172a",
   "theme_color": "#1a1a2e",
-  "orientation": "portrait",
-  "scope": "./",
+  "orientation": "any",
+  "scope": "/",
   "lang": "en",
   "icons": [
     {

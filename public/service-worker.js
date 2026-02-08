@@ -1,5 +1,5 @@
 // Service Worker for OpenGloves Standalone Chat
-const CACHE_NAME = 'opengloves-v0.1';
+const CACHE_NAME = 'opengloves-v0.1.1';
 const urlsToCache = [
   './',
   './index.html',
@@ -38,6 +38,11 @@ self.addEventListener('fetch', event => {
   // Skip WebSocket connections
   if (event.request.url.startsWith('ws://') || event.request.url.startsWith('wss://')) {
     return;
+  }
+
+  // Skip API requests (authentication, config, etc.)
+  if (event.request.url.includes('/api/')) {
+    return fetch(event.request);
   }
 
   event.respondWith(

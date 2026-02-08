@@ -1522,6 +1522,18 @@ class ChatUI {
         if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) {
             console.log('Running as installed PWA');
             this.elements.pwaInstall.style.display = 'none';
+            
+            // Check if this is first run in PWA mode (iOS PWA has isolated storage)
+            const pwaFirstRun = !localStorage.getItem('opengloves-pwa-initialized');
+            if (pwaFirstRun) {
+                console.log('First run in PWA mode - storage is isolated from browser');
+                localStorage.setItem('opengloves-pwa-initialized', 'true');
+                
+                // Show info toast about PWA mode
+                setTimeout(() => {
+                    this.showToast('📱 Running in PWA mode. Please enter your password to connect.', 'info', 5000);
+                }, 1000);
+            }
         }
     }
 
