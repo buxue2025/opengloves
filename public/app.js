@@ -64,7 +64,8 @@ class GatewayClient {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
-            console.log('WebSocket connected, sending handshake...');
+            console.log('✅ WebSocket connected to:', wsUrl);
+            console.log('WebSocket readyState:', this.ws.readyState);
             this.sendHandshake();
         };
 
@@ -78,7 +79,8 @@ class GatewayClient {
         };
 
         this.ws.onclose = (event) => {
-            console.log(`WebSocket closed: ${event.code} ${event.reason}`);
+            console.log(`❌ WebSocket closed: code=${event.code} reason="${event.reason}" wasClean=${event.wasClean}`);
+            console.log('Connection was authenticated:', this.authenticated);
             this.connected = false;
             this.authenticated = false;
             this.ws = null;
@@ -103,7 +105,12 @@ class GatewayClient {
         };
 
         this.ws.onerror = (error) => {
-            console.error('WebSocket error:', error);
+            console.error('❌ WebSocket error:', error);
+            console.error('Error details:', {
+                type: error.type,
+                target: error.target ? 'WebSocket' : 'unknown',
+                readyState: this.ws ? this.ws.readyState : 'no ws'
+            });
             if (this.onError) {
                 this.onError(error);
             }
@@ -1851,8 +1858,25 @@ class ChatUI {
     }
 }
 
+// Global error handler for debugging
+window.addEventListener('error', (event) => {
+    console.error('❌ Global error:', event.error);
+    console.error('   Message:', event.message);
+    console.error('   File:', event.filename);
+    console.error('   Line:', event.lineno);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    console.error('❌ Unhandled promise rejection:', event.reason);
+});
+
 // Initialize the chat UI when the page loads
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Initializing OpenGloves...');
+    console.log('   Location:', window.location.href);
+    console.log('   Protocol:', window.location.protocol);
+    console.log('   Display mode:', window.matchMedia('(display-mode: standalone)').matches ? 'PWA' : 'Browser');
+    
     const chatUI = new ChatUI();
     window.chatUI = chatUI; // Expose for debugging
 

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenGloves Debug</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a2e; color: #fff; }
+        .log { background: #0f172a; padding: 10px; margin: 5px 0; border-left: 3px solid #6366f1; }
+        .success { border-left-color: #10b981; }
+        .error { border-left-color: #ef4444; }
+        button { padding: 10px 20px; margin: 5px; background: #6366f1; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>🧤 OpenGloves Debug</h1>
+    <div id="logs"></div>
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="clearLogs()">Clear</button>
+    
+    <script>
+        const log = (msg, type = 'log') => {
+            const div = document.createElement('div');
+            div.className = `log ${type}`;
+            div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            document.getElementById('logs').appendChild(div);
+            console.log(msg);
+        };
+        
+        const clearLogs = () => {
+            document.getElementById('logs').innerHTML = '';
+        };
+        
+        const testConnection = async () => {
+            clearLogs();
+            
+            // 1. Check environment
+            log(`Protocol: ${window.location.protocol}`);
+            log(`Host: ${window.location.host}`);
+            log(`Display mode: ${window.matchMedia('(display-mode: standalone)').matches ? 'PWA' : 'Browser'}`);
+            log(`Crypto available: ${!!window.crypto?.subtle}`, window.crypto?.subtle ? 'success' : 'error');
+            
+            // 2. Test fetch API config
+            try {
+                log('Testing /api/config...');
+                const config = await fetch('/api/config');
+                const data = await config.json();
+                log(`Gateway URL: ${data.gateway.url}`, 'success');
+                log(`Auto-detect: ${data.gateway.autoDetectUrl}`);
+                
+                // 3. Test WebSocket connection
+                const wsUrl = data.gateway.url;
+                log(`Testing WebSocket to: ${wsUrl}`);
+                
+                const ws = new WebSocket(wsUrl);
+                
+                ws.onopen = () => {
+                    log('✅ WebSocket OPEN', 'success');
+                    log(`ReadyState: ${ws.readyState}`);
+                    setTimeout(() => ws.close(1000, 'Test complete'), 2000);
+                };
+                
+                ws.onerror = (error) => {
+                    log(`❌ WebSocket ERROR: ${error.type}`, 'error');
+                };
+                
+                ws.onclose = (event) => {
+                    log(`WebSocket CLOSE: code=${event.code} reason="${event.reason}" wasClean=${event.wasClean}`, event.wasClean ? 'log' : 'error');
+                };
+                
+                ws.onmessage = (event) => {
+                    log(`📥 Received: ${event.data.substring(0, 100)}...`);
+                };
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                log(`Stack: ${error.stack}`, 'error');
+            }
+        };
+        
+        // Auto-test on load
+        setTimeout(testConnection, 500);
+    </script>
+</body>
+</html>
