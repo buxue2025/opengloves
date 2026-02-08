@@ -19,6 +19,39 @@ import { execSync } from 'child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// WebSocket heartbeat configuration
+const HEARTBEAT_INTERVAL = 30000; // 30 seconds
+const heartbeatIntervals = new Map();
+
+function setupHeartbeat(ws) {
+  ws.isAlive = true;
+  
+  ws.on('pong', () => {
+    ws.isAlive = true;
+  });
+  
+  const interval = setInterval(() => {
+    if (ws.isAlive === false) {
+      console.log('💔 Client not responding to ping, terminating');
+      clearInterval(interval);
+      return ws.terminate();
+    }
+    
+    ws.isAlive = false;
+    ws.ping();
+  }, HEARTBEAT_INTERVAL);
+  
+  heartbeatIntervals.set(ws, interval);
+  
+  ws.on('close', () => {
+    const interval = heartbeatIntervals.get(ws);
+    if (interval) {
+      clearInterval(interval);
+      heartbeatIntervals.delete(ws);
+    }
+  });
+}
+
 // Load configuration
 const configPath = path.join(__dirname, 'config.json');
 let config;
@@ -80,6 +113,9 @@ function createWebSocketProxy(server, gatewayUrl) {
     console.log('🟢 New WebSocket connection from', request.socket.remoteAddress);
     console.log('   Origin:', request.headers.origin);
     console.log('   Host:', request.headers.host);
+    
+    // Setup heartbeat for this client
+    setupHeartbeat(clientWs);
     
     // Connect to local OpenClaw Gateway with proper headers
     const headers = {

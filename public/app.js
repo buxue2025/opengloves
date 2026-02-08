@@ -309,6 +309,7 @@ class ChatUI {
         this.gatewayClient = null;
         this.messages = [];
         this.pendingFiles = [];
+        this.pendingSendQueue = []; // Queue for messages sent during disconnection
         this.serverConfig = null; // Will be loaded from server
         this.sessions = []; // Session list from gateway
         this.settings = {
@@ -1143,6 +1144,40 @@ class ChatUI {
         setTimeout(() => {
             this.loadSessions().catch(err => console.warn('Session load failed:', err));
         }, 500);
+        
+        // Resend queued messages from localStorage
+        this.resendPendingMessages();
+    }
+
+    async resendPendingMessages() {
+        try {
+            const cached = localStorage.getItem('opengloves-pending-sends');
+            if (!cached) return;
+            
+            const pending = JSON.parse(cached);
+            if (pending.length === 0) return;
+            
+            console.log(`📤 Resending ${pending.length} queued messages...`);
+            
+            for (const item of pending) {
+                try {
+                    await this.gatewayClient.sendChatMessage(item.message, item.attachments || []);
+                    console.log('✅ Queued message sent');
+                } catch (error) {
+                    console.error('Failed to resend queued message:', error);
+                }
+            }
+            
+            // Clear the queue
+            this.pendingSendQueue = [];
+            localStorage.removeItem('opengloves-pending-sends');
+            
+            if (pending.length > 0) {
+                this.showToast(`Sent ${pending.length} queued message(s)`, 'success');
+            }
+        } catch (error) {
+            console.error('Failed to process pending messages:', error);
+        }
     }
 
     onGatewayDisconnect(event) {
@@ -1299,10 +1334,23 @@ class ChatUI {
         this.clearPendingFiles();
 
         try {
-            await this.gatewayClient.sendChatMessage(message || '', attachments);
+            const sendResult = await this.gatewayClient.sendChatMessage(message || '', attachments);
+            // Message sent successfully, no need to queue
         } catch (error) {
             console.error('Failed to send message:', error);
-            this.showToast('Failed to send message', 'error');
+            
+            // If disconnected, queue the message for retry
+            if (!this.gatewayClient || !this.gatewayClient.connected) {
+                this.pendingSendQueue.push({
+                    message: message || '',
+                    attachments,
+                    timestamp: Date.now()
+                });
+                localStorage.setItem('opengloves-pending-sends', JSON.stringify(this.pendingSendQueue));
+                this.showToast('Connection lost. Message will be sent when reconnected.', 'warning');
+            } else {
+                this.showToast('Failed to send message', 'error');
+            }
         }
     }
 
