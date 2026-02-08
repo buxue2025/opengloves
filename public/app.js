@@ -51,8 +51,17 @@ class GatewayClient {
         this.authenticated = false;
         this.pendingRequests.clear();
 
-        console.log(`Connecting to ${this.url}`);
-        this.ws = new WebSocket(this.url);
+        // Convert relative URLs to absolute WebSocket URLs
+        let wsUrl = this.url;
+        if (wsUrl.startsWith('/')) {
+            // Relative path - construct absolute URL
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.host;
+            wsUrl = `${protocol}//${host}${wsUrl}`;
+        }
+        
+        console.log(`Connecting to ${wsUrl}`);
+        this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
             console.log('WebSocket connected, sending handshake...');
@@ -419,13 +428,24 @@ class ChatUI {
     }
     
     async hashPassword(password, nonce) {
-        // Use Web Crypto API to hash password with nonce
-        const encoder = new TextEncoder();
-        const data = encoder.encode(password + nonce);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        return hashHex;
+        // Check if crypto.subtle is available
+        if (!window.crypto || !window.crypto.subtle) {
+            console.error('Web Crypto API not available. HTTPS required.');
+            throw new Error('Secure connection required for authentication');
+        }
+        
+        try {
+            // Use Web Crypto API to hash password with nonce
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password + nonce);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashHex;
+        } catch (error) {
+            console.error('Password hashing failed:', error);
+            throw new Error('Authentication encryption failed');
+        }
     }
 
     async loadServerConfig() {
@@ -440,16 +460,22 @@ class ChatUI {
                     this.settings.gatewayUrl = this.serverConfig.gateway.url;
                     this.settings.token = this.serverConfig.gateway.token;
                     
-                    // Auto-detect URL if enabled
-                    if (this.serverConfig.gateway.autoDetectUrl) {
+                    console.log('🔍 Gateway URL from config:', this.settings.gatewayUrl);
+                    
+                    // Auto-detect URL if enabled and URL is not a relative path
+                    if (this.serverConfig.gateway.autoDetectUrl && !this.settings.gatewayUrl.startsWith('/')) {
                         const currentHost = window.location.hostname;
                         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                         
                         if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
-                            // Try to construct gateway URL with current host
-                            const gatewayUrl = new URL(this.settings.gatewayUrl);
-                            this.settings.gatewayUrl = `${protocol}//${currentHost}:${gatewayUrl.port}`;
-                            console.log('🔍 Auto-detected gateway URL:', this.settings.gatewayUrl);
+                            try {
+                                // Try to construct gateway URL with current host
+                                const gatewayUrl = new URL(this.settings.gatewayUrl);
+                                this.settings.gatewayUrl = `${protocol}//${currentHost}:${gatewayUrl.port}`;
+                                console.log('🔍 Auto-detected gateway URL:', this.settings.gatewayUrl);
+                            } catch (e) {
+                                console.warn('Could not parse gateway URL for auto-detection:', e);
+                            }
                         }
                     }
                 }
@@ -992,6 +1018,8 @@ class ChatUI {
     }
 
     async connect(fromMobile = false) {
+        console.log('Connect attempt:', { fromMobile, isHTTPS: window.location.protocol === 'https:' });
+        
         // Get access password from appropriate input
         const accessPassword = fromMobile 
             ? this.elements.mobileAccessPassword.value.trim()
@@ -1004,6 +1032,7 @@ class ChatUI {
 
         // Authenticate with server using challenge-response
         try {
+            console.log('Starting authentication...');
             // Step 1: Get challenge (nonce) from server
             const challengeResponse = await fetch('/api/auth/challenge');
             if (!challengeResponse.ok) {
@@ -1024,13 +1053,15 @@ class ChatUI {
             });
             
             const result = await authResponse.json();
+            console.log('Auth result:', result);
             if (!result.success) {
                 this.showToast(result.message || 'Invalid access password', 'error');
                 return;
             }
+            console.log('Authentication successful');
         } catch (error) {
             console.error('Authentication error:', error);
-            this.showToast('Authentication failed. Please try again.', 'error');
+            this.showToast('Authentication failed: ' + error.message, 'error');
             return;
         }
 
