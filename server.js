@@ -298,8 +298,8 @@ function startServer() {
   const requestHandler = createRequestHandler(publicDir);
   const servers = [];
 
-  // Get local gateway URL (always use localhost for internal connection)
-  const gatewayUrl = config.gateway.url.replace(/ws:\/\/[^:]+:/, 'ws://localhost:');
+  // Use configured gateway URL directly (supports both localhost and LAN)
+  const gatewayUrl = config.gateway.url;
   console.log('🔌 Gateway URL for proxy:', gatewayUrl);
 
   // Start HTTP server
