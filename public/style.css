@@ -795,6 +795,129 @@ textarea:disabled {
     transform: none !important;
 }
 
+/* Session Selector */
+.session-selector {
+    position: relative;
+}
+
+.session-input-wrapper {
+    display: flex;
+    position: relative;
+}
+
+.session-input-wrapper input {
+    flex: 1;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    border-right: none;
+}
+
+.session-dropdown-btn {
+    width: 36px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    transition: var(--transition-fast);
+}
+
+.session-dropdown-btn:hover {
+    background: var(--surface-highlight);
+    color: var(--text-primary);
+}
+
+.session-dropdown-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+.session-dropdown-panel {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: var(--shadow-lg);
+}
+
+.session-dropdown-panel.hidden {
+    display: none;
+}
+
+.session-list {
+    padding: var(--space-xs) 0;
+}
+
+.session-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.session-item:hover {
+    background: var(--surface-elevated);
+}
+
+.session-item.active {
+    background: var(--primary);
+    color: white;
+}
+
+.session-item.active .session-time {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.session-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.session-icon {
+    font-size: 1rem;
+}
+
+.session-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.session-time {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.session-dropdown-footer {
+    padding: var(--space-sm);
+    border-top: 1px solid var(--border);
+}
+
+.session-refresh-btn {
+    width: 100%;
+    padding: var(--space-sm);
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.session-refresh-btn:hover {
+    background: var(--surface-highlight);
+    color: var(--text-primary);
+}
+
 /* Sidebar */
 .sidebar {
     display: none;
@@ -1310,6 +1433,145 @@ button:disabled {
     
     .toast.show {
         transform: translateY(0) scale(1);
+    }
+    
+    /* Mobile Session Dropdown */
+    .mobile-session-input-wrapper {
+        display: flex;
+        position: relative;
+    }
+
+    .mobile-session-input-wrapper input {
+        flex: 1;
+        border-radius: var(--radius-md) 0 0 var(--radius-md);
+        border-right: none;
+    }
+
+    .mobile-session-dropdown-btn {
+        width: 36px;
+        background: var(--surface-elevated);
+        border: 1px solid var(--border);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        cursor: pointer;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+    }
+
+    .mobile-session-dropdown-btn.active {
+        background: var(--primary);
+        color: white;
+    }
+
+    .mobile-session-dropdown-panel {
+        margin-top: var(--space-sm);
+        background: var(--surface-elevated);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .mobile-session-dropdown-panel.hidden {
+        display: none;
+    }
+
+    .mobile-session-list {
+        padding: var(--space-xs) 0;
+    }
+
+    .mobile-session-list .session-item {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .mobile-session-refresh-btn {
+        width: 100%;
+        padding: var(--space-sm);
+        background: var(--surface);
+        border: none;
+        border-top: 1px solid var(--border);
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        cursor: pointer;
+    }
+}
+
+/* High DPI Mobile Screens (Mate 70 Pro, iPhone 16 Pro Max, etc.) */
+@media (-webkit-min-device-pixel-ratio: 3), (min-resolution: 3dppx) {
+    @media (max-width: 768px) {
+        /* 增大字体 */
+        .header-left h1 {
+            font-size: 1.125rem;
+        }
+        
+        .mobile-status-text {
+            font-size: 0.8125rem;
+        }
+        
+        .message-content {
+            font-size: 1rem;
+        }
+        
+        /* 增大触控区域 */
+        .file-button,
+        #sendButton {
+            width: 48px;
+            height: 48px;
+        }
+        
+        .mobile-dropdown-toggle {
+            padding: var(--space-sm) var(--space-md);
+        }
+        
+        .mobile-dropdown-section input {
+            padding: var(--space-sm) var(--space-md);
+            font-size: 1rem;
+        }
+        
+        /* 增大按钮 */
+        .mobile-connect-btn,
+        .mobile-disconnect-btn {
+            padding: var(--space-sm) var(--space-lg);
+            font-size: 0.9375rem;
+        }
+        
+        /* Session 下拉项 */
+        .mobile-session-list .session-item {
+            padding: var(--space-md);
+        }
+        
+        .session-name {
+            font-size: 0.9375rem;
+        }
+        
+        .session-time {
+            font-size: 0.8125rem;
+        }
+        
+        #sendButton {
+            font-size: 0.9375rem;
+        }
+    }
+}
+
+/* iPhone 特定优化 */
+@supports (-webkit-touch-callout: none) {
+    @media (max-width: 768px) {
+        /* iOS 安全区域 */
+        .header {
+            padding-top: max(var(--space-sm), env(safe-area-inset-top));
+        }
+        
+        .input-area {
+            padding-bottom: max(var(--space-sm), env(safe-area-inset-bottom));
+        }
+        
+        /* 禁用双击缩放 */
+        .session-dropdown-btn,
+        .mobile-session-dropdown-btn,
+        .file-button,
+        #sendButton {
+            touch-action: manipulation;
+        }
     }
 }
 

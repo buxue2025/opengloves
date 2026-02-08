@@ -278,6 +278,20 @@ class GatewayClient {
             },
         });
     }
+
+    async listSessions(options = {}) {
+        return this.sendRequest({
+            type: 'req',
+            method: 'sessions.list',
+            id: this.generateId(),
+            params: {
+                limit: options.limit || 50,
+                includeDerivedTitles: true,
+                includeLastMessage: false,
+                ...options
+            }
+        });
+    }
 }
 
 // UI Manager
@@ -287,6 +301,7 @@ class ChatUI {
         this.messages = [];
         this.pendingFiles = [];
         this.serverConfig = null; // Will be loaded from server
+        this.sessions = []; // Session list from gateway
         this.settings = {
             gatewayUrl: 'ws://localhost:18789',  // Default, will be overridden by server config
             token: '',                           // Will be set from server config  
@@ -495,6 +510,16 @@ class ChatUI {
             mobileAutoScroll: document.getElementById('mobileAutoScroll'),
             mobileSoundEnabled: document.getElementById('mobileSoundEnabled'),
             mobileNotificationsEnabled: document.getElementById('mobileNotificationsEnabled'),
+            // Desktop session dropdown
+            sessionDropdownToggle: document.getElementById('sessionDropdownToggle'),
+            sessionDropdown: document.getElementById('sessionDropdown'),
+            sessionList: document.getElementById('sessionList'),
+            refreshSessionsBtn: document.getElementById('refreshSessionsBtn'),
+            // Mobile session dropdown
+            mobileSessionDropdownToggle: document.getElementById('mobileSessionDropdownToggle'),
+            mobileSessionDropdown: document.getElementById('mobileSessionDropdown'),
+            mobileSessionList: document.getElementById('mobileSessionList'),
+            mobileRefreshSessionsBtn: document.getElementById('mobileRefreshSessionsBtn'),
             // Other elements
             autoScroll: document.getElementById('autoScroll'),
             soundEnabled: document.getElementById('soundEnabled'),
@@ -580,6 +605,47 @@ class ChatUI {
         this.elements.autoScroll.addEventListener('change', () => this.updateSetting('autoScroll'));
         this.elements.soundEnabled.addEventListener('change', () => this.updateSetting('soundEnabled'));
         this.elements.notificationsEnabled.addEventListener('change', () => this.toggleNotifications());
+        
+        // Session dropdown events
+        if (this.elements.sessionDropdownToggle) {
+            this.elements.sessionDropdownToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleSessionDropdown();
+            });
+        }
+        
+        if (this.elements.refreshSessionsBtn) {
+            this.elements.refreshSessionsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.loadSessions();
+            });
+        }
+        
+        if (this.elements.mobileSessionDropdownToggle) {
+            this.elements.mobileSessionDropdownToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleMobileSessionDropdown();
+            });
+        }
+        
+        if (this.elements.mobileRefreshSessionsBtn) {
+            this.elements.mobileRefreshSessionsBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.loadSessions();
+            });
+        }
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (this.elements.sessionDropdown && !this.elements.sessionDropdown.contains(e.target) && 
+                this.elements.sessionDropdownToggle && !this.elements.sessionDropdownToggle.contains(e.target)) {
+                this.toggleSessionDropdown(false);
+            }
+            if (this.elements.mobileSessionDropdown && !this.elements.mobileSessionDropdown.contains(e.target) && 
+                this.elements.mobileSessionDropdownToggle && !this.elements.mobileSessionDropdownToggle.contains(e.target)) {
+                this.toggleMobileSessionDropdown(false);
+            }
+        });
     }
 
     // File handling methods
@@ -744,6 +810,187 @@ class ChatUI {
         }
     }
 
+    // Session dropdown methods
+    async loadSessions() {
+        if (!this.gatewayClient || !this.gatewayClient.connected) {
+            this.showToast('Please connect to gateway first', 'warning');
+            return;
+        }
+        
+        try {
+            const result = await this.gatewayClient.listSessions();
+            this.sessions = result.sessions || [];
+            this.renderSessionList();
+            this.renderMobileSessionList();
+        } catch (error) {
+            console.error('Failed to load sessions:', error);
+            this.showToast('Failed to load sessions', 'error');
+        }
+    }
+
+    getSessionIcon(key) {
+        if (key.includes(':group:')) return '👥';
+        if (key.includes(':channel:')) return '📢';
+        if (key.startsWith('cron:')) return '⏰';
+        if (key.startsWith('hook:')) return '🔗';
+        if (key.startsWith('node-')) return '🖥️';
+        if (key.endsWith(':main') || key === 'main') return '🏠';
+        return '💬';
+    }
+
+    formatTimeAgo(timestamp) {
+        if (!timestamp) return '';
+        const seconds = Math.floor((Date.now() - timestamp) / 1000);
+        if (seconds < 60) return 'now';
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        return `${days}d ago`;
+    }
+
+    renderSessionList() {
+        const listEl = this.elements.sessionList;
+        const currentKey = this.settings.sessionKey;
+        
+        if (!listEl) return;
+        
+        if (!this.sessions || this.sessions.length === 0) {
+            listEl.innerHTML = '';
+            return;
+        }
+        
+        listEl.innerHTML = this.sessions.map(session => {
+            const icon = this.getSessionIcon(session.key);
+            const timeAgo = this.formatTimeAgo(session.updatedAt);
+            const isActive = session.key === currentKey;
+            const displayName = session.displayName || session.key;
+            
+            return `
+                <div class="session-item ${isActive ? 'active' : ''}" data-key="${session.key}">
+                    <div class="session-info">
+                        <span class="session-icon">${icon}</span>
+                        <span class="session-name">${displayName}</span>
+                    </div>
+                    <span class="session-time">${timeAgo}</span>
+                </div>
+            `;
+        }).join('');
+        
+        // Bind click events
+        listEl.querySelectorAll('.session-item').forEach(item => {
+            item.addEventListener('click', () => this.selectSession(item.dataset.key));
+        });
+    }
+
+    renderMobileSessionList() {
+        const listEl = this.elements.mobileSessionList;
+        const currentKey = this.settings.sessionKey;
+        
+        if (!listEl) return;
+        
+        if (!this.sessions || this.sessions.length === 0) {
+            listEl.innerHTML = '';
+            return;
+        }
+        
+        listEl.innerHTML = this.sessions.map(session => {
+            const icon = this.getSessionIcon(session.key);
+            const timeAgo = this.formatTimeAgo(session.updatedAt);
+            const isActive = session.key === currentKey;
+            const displayName = session.displayName || session.key;
+            
+            return `
+                <div class="session-item ${isActive ? 'active' : ''}" data-key="${session.key}">
+                    <div class="session-info">
+                        <span class="session-icon">${icon}</span>
+                        <span class="session-name">${displayName}</span>
+                    </div>
+                    <span class="session-time">${timeAgo}</span>
+                </div>
+            `;
+        }).join('');
+        
+        // Bind click events
+        listEl.querySelectorAll('.session-item').forEach(item => {
+            item.addEventListener('click', () => this.selectSession(item.dataset.key));
+        });
+    }
+
+    async selectSession(key) {
+        if (key === this.settings.sessionKey) {
+            this.toggleSessionDropdown(false);
+            this.toggleMobileSessionDropdown(false);
+            return;
+        }
+        
+        this.settings.sessionKey = key;
+        this.elements.sessionKey.value = key;
+        this.elements.mobileSessionKey.value = key;
+        this.saveSettings();
+        
+        this.toggleSessionDropdown(false);
+        this.toggleMobileSessionDropdown(false);
+        
+        // Re-render to update active state
+        this.renderSessionList();
+        this.renderMobileSessionList();
+        
+        // If connected, reload chat history for new session
+        if (this.gatewayClient && this.gatewayClient.connected) {
+            this.showToast(`Session switched to: ${key}`, 'info');
+            this.clearMessages();
+            await this.loadChatHistory();
+        }
+    }
+
+    toggleSessionDropdown(show) {
+        const dropdown = this.elements.sessionDropdown;
+        const btn = this.elements.sessionDropdownToggle;
+        
+        if (!dropdown || !btn) return;
+        
+        if (show === undefined) {
+            show = dropdown.classList.contains('hidden');
+        }
+        
+        if (show) {
+            dropdown.classList.remove('hidden');
+            btn.classList.add('active');
+            // Auto load if empty
+            if (!this.sessions || this.sessions.length === 0) {
+                this.loadSessions();
+            }
+        } else {
+            dropdown.classList.add('hidden');
+            btn.classList.remove('active');
+        }
+    }
+
+    toggleMobileSessionDropdown(show) {
+        const dropdown = this.elements.mobileSessionDropdown;
+        const btn = this.elements.mobileSessionDropdownToggle;
+        
+        if (!dropdown || !btn) return;
+        
+        if (show === undefined) {
+            show = dropdown.classList.contains('hidden');
+        }
+        
+        if (show) {
+            dropdown.classList.remove('hidden');
+            btn.classList.add('active');
+            // Auto load if empty
+            if (!this.sessions || this.sessions.length === 0) {
+                this.loadSessions();
+            }
+        } else {
+            dropdown.classList.add('hidden');
+            btn.classList.remove('active');
+        }
+    }
+
     async connect(fromMobile = false) {
         // Get access password from appropriate input
         const accessPassword = fromMobile 
@@ -860,6 +1107,9 @@ class ChatUI {
         
         // Load chat history
         this.loadHistory();
+        
+        // Load available sessions
+        this.loadSessions();
     }
 
     onGatewayDisconnect(event) {

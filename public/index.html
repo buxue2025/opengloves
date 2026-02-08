@@ -49,7 +49,14 @@
                     </div>
                     <div class="mobile-dropdown-section">
                         <label>Session Key</label>
-                        <input type="text" id="mobileSessionKey" placeholder="main" value="main" class="mobile-session-input">
+                        <div class="mobile-session-input-wrapper">
+                            <input type="text" id="mobileSessionKey" placeholder="main" value="main" class="mobile-session-input">
+                            <button id="mobileSessionDropdownToggle" class="mobile-session-dropdown-btn" type="button">▼</button>
+                        </div>
+                        <div id="mobileSessionDropdown" class="mobile-session-dropdown-panel hidden">
+                            <div class="mobile-session-list" id="mobileSessionList"></div>
+                            <button id="mobileRefreshSessionsBtn" class="mobile-session-refresh-btn">🔄 Refresh</button>
+                        </div>
                     </div>
                     <div class="mobile-dropdown-buttons">
                         <button id="mobileConnectButton" class="mobile-connect-btn">Connect</button>
@@ -115,9 +122,18 @@
                 
                 <div class="sidebar-section">
                     <h3>Gateway Settings</h3>
-                    <div class="form-group">
+                    <div class="form-group session-selector">
                         <label for="sessionKey">Session Key</label>
-                        <input type="text" id="sessionKey" placeholder="main" value="main">
+                        <div class="session-input-wrapper">
+                            <input type="text" id="sessionKey" placeholder="main" value="main">
+                            <button id="sessionDropdownToggle" class="session-dropdown-btn" type="button">▼</button>
+                        </div>
+                        <div id="sessionDropdown" class="session-dropdown-panel hidden">
+                            <div class="session-list" id="sessionList"></div>
+                            <div class="session-dropdown-footer">
+                                <button id="refreshSessionsBtn" class="session-refresh-btn">🔄 Refresh</button>
+                            </div>
+                        </div>
                         <small>Use 'main' for your personal session</small>
                     </div>
                 </div>
