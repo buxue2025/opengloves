@@ -63,7 +63,19 @@
                         <button id="mobileDisconnectButton" class="mobile-disconnect-btn" disabled>Disconnect</button>
                     </div>
                     <div class="mobile-dropdown-divider"></div>
+                    <div class="mobile-dropdown-section">
+                        <label>Identity (optional)</label>
+                        <input type="text" id="mobileIdentity" placeholder="e.g. whatsapp:+123..." class="mobile-session-input">
+                        <small style="font-size: 0.7rem; color: var(--text-tertiary); margin-top: 0.25rem; display: block;">For cross-platform sync</small>
+                    </div>
+                    <div class="mobile-dropdown-divider"></div>
                     <div class="mobile-dropdown-settings">
+                        <div class="mobile-setting-item">
+                            <label class="mobile-checkbox-label">
+                                <input type="checkbox" id="mobileDeliverMessages">
+                                <span>Deliver to channels</span>
+                            </label>
+                        </div>
                         <div class="mobile-setting-item">
                             <label class="mobile-checkbox-label">
                                 <input type="checkbox" id="mobileAutoScroll" checked>

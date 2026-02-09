@@ -543,6 +543,8 @@ class ChatUI {
             mobileStatusText: document.getElementById('mobileStatusText'),
             mobileHeaderToggle: document.getElementById('mobileHeaderToggle'),
             mobileHeaderArrow: document.getElementById('mobileHeaderArrow'),
+            mobileDeliverMessages: document.getElementById('mobileDeliverMessages'),
+            mobileIdentity: document.getElementById('mobileIdentity'),
             mobileAutoScroll: document.getElementById('mobileAutoScroll'),
             mobileSoundEnabled: document.getElementById('mobileSoundEnabled'),
             mobileNotificationsEnabled: document.getElementById('mobileNotificationsEnabled'),
@@ -584,6 +586,10 @@ class ChatUI {
         this.elements.notificationsEnabled.checked = this.settings.notificationsEnabled;
         
         // Sync mobile settings
+        this.elements.mobileDeliverMessages.checked = this.settings.deliver;
+        if (this.settings.identity) {
+            this.elements.mobileIdentity.value = this.settings.identity;
+        }
         this.elements.mobileAutoScroll.checked = this.settings.autoScroll;
         this.elements.mobileSoundEnabled.checked = this.settings.soundEnabled;
         this.elements.mobileNotificationsEnabled.checked = this.settings.notificationsEnabled;
@@ -610,6 +616,16 @@ class ChatUI {
         }
         
         // Mobile settings sync
+        this.elements.mobileDeliverMessages.addEventListener('change', () => {
+            this.settings.deliver = this.elements.mobileDeliverMessages.checked;
+            this.elements.deliverMessages.checked = this.settings.deliver;
+            this.saveSettings();
+        });
+        this.elements.mobileIdentity.addEventListener('change', () => {
+            this.settings.identity = this.elements.mobileIdentity.value.trim() || null;
+            this.elements.identity.value = this.settings.identity || '';
+            this.saveSettings();
+        });
         this.elements.mobileAutoScroll.addEventListener('change', () => {
             this.settings.autoScroll = this.elements.mobileAutoScroll.checked;
             this.elements.autoScroll.checked = this.settings.autoScroll;
@@ -1364,7 +1380,14 @@ class ChatUI {
                 sendOptions.identity = this.settings.identity;
             }
             
+            console.log('Sending message with options:', { 
+                sessionKey: this.settings.sessionKey, 
+                deliver: sendOptions.deliver,
+                identity: sendOptions.identity
+            });
+            
             const sendResult = await this.gatewayClient.sendChatMessage(message || '', attachments, sendOptions);
+            console.log('Message sent, result:', sendResult);
             // Message sent successfully, no need to queue
         } catch (error) {
             console.error('Failed to send message:', error);
