@@ -245,16 +245,21 @@ class GatewayClient {
     }
 
     // Chat-specific methods
-    async sendChatMessage(message, attachments = []) {
+    async sendChatMessage(message, attachments = [], options = {}) {
         const params = {
             sessionKey: this.sessionKey,
             message,
-            deliver: false,
+            deliver: options.deliver !== undefined ? options.deliver : false,
             idempotencyKey: this.generateId(),
         };
 
         if (attachments.length > 0) {
             params.attachments = attachments;
+        }
+        
+        // Add identity if configured
+        if (options.identity) {
+            params.identity = options.identity;
         }
 
         return this.sendRequest({
@@ -316,6 +321,8 @@ class ChatUI {
             gatewayUrl: 'ws://localhost:18789',  // Default, will be overridden by server config
             token: '',                           // Will be set from server config  
             sessionKey: 'main',
+            deliver: false,                      // Whether to deliver messages to external channels
+            identity: null,                      // Identity for message attribution
             autoScroll: true,
             soundEnabled: true,
             notificationsEnabled: false,         // System notifications
@@ -483,6 +490,8 @@ class ChatUI {
                 
                 if (this.serverConfig.ui) {
                     this.settings.sessionKey = this.serverConfig.ui.sessionKey || 'main';
+                    this.settings.deliver = this.serverConfig.ui.deliver !== undefined ? this.serverConfig.ui.deliver : false;
+                    this.settings.identity = this.serverConfig.ui.identity || null;
                 }
             } else {
                 console.warn('⚠️ Could not load server config, using defaults');
@@ -547,6 +556,9 @@ class ChatUI {
             mobileSessionDropdown: document.getElementById('mobileSessionDropdown'),
             mobileSessionList: document.getElementById('mobileSessionList'),
             mobileRefreshSessionsBtn: document.getElementById('mobileRefreshSessionsBtn'),
+            // Message settings
+            deliverMessages: document.getElementById('deliverMessages'),
+            identity: document.getElementById('identity'),
             // Other elements
             autoScroll: document.getElementById('autoScroll'),
             soundEnabled: document.getElementById('soundEnabled'),
@@ -563,6 +575,10 @@ class ChatUI {
         // Set initial values from settings
         this.elements.sessionKey.value = this.settings.sessionKey;
         this.elements.mobileSessionKey.value = this.settings.sessionKey;
+        this.elements.deliverMessages.checked = this.settings.deliver;
+        if (this.settings.identity) {
+            this.elements.identity.value = this.settings.identity;
+        }
         this.elements.autoScroll.checked = this.settings.autoScroll;
         this.elements.soundEnabled.checked = this.settings.soundEnabled;
         this.elements.notificationsEnabled.checked = this.settings.notificationsEnabled;
@@ -629,6 +645,8 @@ class ChatUI {
         // Save settings on change  
         this.elements.sessionKey.addEventListener('change', () => this.updateSetting('sessionKey'));
         this.elements.mobileSessionKey.addEventListener('change', () => this.updateMobileSetting('sessionKey'));
+        this.elements.deliverMessages.addEventListener('change', () => this.updateSetting('deliver'));
+        this.elements.identity.addEventListener('change', () => this.updateSetting('identity'));
         this.elements.autoScroll.addEventListener('change', () => this.updateSetting('autoScroll'));
         this.elements.soundEnabled.addEventListener('change', () => this.updateSetting('soundEnabled'));
         this.elements.notificationsEnabled.addEventListener('change', () => this.toggleNotifications());
@@ -806,6 +824,10 @@ class ChatUI {
             this.settings.sessionKey = this.elements.sessionKey.value;
             // Sync to mobile input
             this.elements.mobileSessionKey.value = this.settings.sessionKey;
+        } else if (key === 'deliver') {
+            this.settings.deliver = this.elements.deliverMessages.checked;
+        } else if (key === 'identity') {
+            this.settings.identity = this.elements.identity.value.trim() || null;
         } else if (key === 'autoScroll') {
             this.settings.autoScroll = this.elements.autoScroll.checked;
         } else if (key === 'soundEnabled') {
@@ -1334,7 +1356,15 @@ class ChatUI {
         this.clearPendingFiles();
 
         try {
-            const sendResult = await this.gatewayClient.sendChatMessage(message || '', attachments);
+            const sendOptions = {
+                deliver: this.settings.deliver,
+            };
+            
+            if (this.settings.identity) {
+                sendOptions.identity = this.settings.identity;
+            }
+            
+            const sendResult = await this.gatewayClient.sendChatMessage(message || '', attachments, sendOptions);
             // Message sent successfully, no need to queue
         } catch (error) {
             console.error('Failed to send message:', error);

@@ -220,7 +220,9 @@ function createApiHandler(req, res) {
       },
       ui: {
         title: config.ui.title,
-        sessionKey: config.ui.sessionKey
+        sessionKey: config.ui.sessionKey,
+        deliver: config.ui.deliver !== undefined ? config.ui.deliver : false,
+        identity: config.ui.identity || null
         // Don't send accessPassword to client
       }
     };

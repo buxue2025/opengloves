@@ -139,7 +139,23 @@
                 </div>
 
                 <div class="sidebar-section">
-                    <h3>Settings</h3>
+                    <h3>Message Settings</h3>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="deliverMessages">
+                            <span>Deliver to external channels</span>
+                        </label>
+                        <small>Send messages to WhatsApp/Telegram/etc if configured</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="identity">Identity (optional)</label>
+                        <input type="text" id="identity" placeholder="e.g. whatsapp:+1234567890">
+                        <small>For identity linking across platforms</small>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>UI Settings</h3>
                     <div class="form-group">
                         <label class="checkbox-label">
                             <input type="checkbox" id="autoScroll" checked>
