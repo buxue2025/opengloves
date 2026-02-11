@@ -62,6 +62,23 @@ cd ~/.opengloves
 npm start
 ```
 
+### Uninstall
+
+To completely remove OpenGloves from your system:
+
+**macOS:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/buxue2025/opengloves/main/uninstall-opengloves-macos.sh | bash
+```
+
+**Linux:**
+```bash
+systemctl --user stop opengloves
+systemctl --user disable opengloves
+rm -rf ~/.opengloves ~/.config/systemd/user/opengloves.service
+systemctl --user daemon-reload
+```
+
 ### OpenClaw Gateway Configuration
 
 **The install script automatically configures OpenClaw Gateway**, but if you need to configure manually or access from LAN:
